@@ -1,53 +1,42 @@
 import { createSignal } from "solid-js";
-import logo from "./assets/logo.svg";
 import { invoke } from "@tauri-apps/api/tauri";
-import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = createSignal("");
-  const [name, setName] = createSignal("");
+async function createCaptureResultScreen() {
+  invoke("create_capture_window");
+}
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name: name() }));
+export function App() {
+  const [mouseX1, setMouseX1] = createSignal(0);
+  const [mouseY1, setMouseY1] = createSignal(0);
+  const [mouseX2, setMouseX2] = createSignal(0);
+  const [mouseY2, setMouseY2] = createSignal(0);
+
+  async function getMousePosition1() {
+    let mousePosition: [number, number] = await invoke("get_mouse_position");
+    setMouseX1(mousePosition[0]);
+    setMouseY1(mousePosition[1]);
+  }
+
+  async function getMousePosition2() {
+    let mousePosition: [number, number] = await invoke("get_mouse_position");
+    setMouseX2(mousePosition[0]);
+    setMouseY2(mousePosition[1]);
   }
 
   return (
-    <div class="container">
-      <h1>Welcome to Tauri!</h1>
-
-      <div class="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://solidjs.com" target="_blank">
-          <img src={logo} class="logo solid" alt="Solid logo" />
-        </a>
+    <>
+      <div class="container">
+        <button onclick={(e) => getMousePosition1()}>Top left</button>
+        <button onclick={(e) => getMousePosition2()}>Bottom Right</button>
+        <button onclick={(e) => createCaptureResultScreen()}>
+          Take screenshot
+        </button>
+        <p>
+          mouse position 1: {mouseX1()} / {mouseY1()}
+          <br></br>
+          mouse position 2: {mouseX2()} / {mouseY2()}
+        </p>
       </div>
-
-      <p>Click on the Tauri, Vite, and Solid logos to learn more.</p>
-
-      <form
-        class="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-
-      <p>{greetMsg()}</p>
-    </div>
+    </>
   );
 }
-
-export default App;
