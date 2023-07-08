@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod capture_screen;
+mod plotter;
 use base64::{
     alphabet,
     engine::{self, general_purpose},
@@ -52,7 +53,9 @@ fn emit_capture_result(window: tauri::Window) {
         let screenshot = capture_screen::capture_entire_sreen();
         const CUSTOM_ENGINE: engine::GeneralPurpose =
             engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
-        let base64 = CUSTOM_ENGINE.encode(screenshot);
+        let vector_scope_image =
+            plotter::draw_vectorscope(screenshot).expect("Failed to draw vector scope");
+        let base64 = CUSTOM_ENGINE.encode(vector_scope_image);
 
         let data_uri = PREFIX_DATA_URI.to_string() + &base64;
         window

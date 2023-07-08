@@ -39,11 +39,9 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": true,
         "title": "tauri-vector-scope",
-        "width": 800,
-        "height": 600,
-        "contentProtected": true
+        "width": 500,
+        "height": 500
       }
     ],
     "systemTray": {
