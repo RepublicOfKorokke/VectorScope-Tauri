@@ -2,7 +2,7 @@
 
 ## TODO List
 - [x] Add screen shot capability
-- [ ] Add vector scope
+- [x] Add vector scope
 - [ ] Add waveform
-- [ ] Fix performance issue
+- [ ] Add selective performance mode?
 - [ ] Fix memory leak (Caused by Webkit?)
