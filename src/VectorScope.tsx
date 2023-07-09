@@ -3,8 +3,13 @@ import { createSignal } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { appWindow, LogicalSize } from "@tauri-apps/api/window";
+import { register, unregisterAll } from "@tauri-apps/api/globalShortcut";
 
 import "./styles.css";
+
+const GLOBAL_SHORTCUT_KEY: string = "CommandOrControl+Shift+R";
+
+let isListeningEmit = false;
 
 // Methods to address the memory leaks problems in Safari
 let BASE64_MARKER = ";base64,";
@@ -36,25 +41,49 @@ export function Capture() {
   appWindow.setAlwaysOnTop(true);
   appWindow.setSize(new LogicalSize(300, 320));
 
+  registerGlobalShortcutKey();
+
   listenCaptureScreen();
   listenCloseWindow();
-  invoke("start_emit_capture_result");
+
+  async function registerGlobalShortcutKey() {
+    register(GLOBAL_SHORTCUT_KEY, () => {
+      invoke("print_log", { text: `Manual reload vector scope view` });
+      if (isListeningEmit) {
+        invoke("stop_emit_capture_result");
+        isListeningEmit = false;
+      }
+
+      invoke("get_vector_scope_image_as_payload").then((payload: any) => {
+        invoke("print_log", { text: "receive cature result" });
+        let dataURI = payload.message as string;
+        if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
+        let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
+        temporaryImage = objectURL.createObjectURL(imageDataBlob);
+        setImage(temporaryImage);
+        dataURI = "";
+      });
+    });
+  }
 
   async function listenCaptureScreen() {
     await listen("event-capture-screen", (event: any) => {
       invoke("print_log", { text: "receive cature result" });
-      let dataURI = event.payload.message as string;
+      let dataURI = event.payload.message as string; // event.payload is payload
       if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
       let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
       temporaryImage = objectURL.createObjectURL(imageDataBlob);
       setImage(temporaryImage);
       dataURI = "";
     });
+    invoke("start_emit_capture_result");
+    isListeningEmit = true;
   }
 
   async function listenCloseWindow() {
     const unlisten = await appWindow.onCloseRequested(async (event) => {
       invoke("stop_emit_capture_result");
+      unregisterAll();
     });
   }
 

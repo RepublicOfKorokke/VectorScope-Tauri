@@ -3,6 +3,7 @@
 
 mod message;
 mod model;
+use crate::message::payload::Payload;
 use crate::model::graph_plotter;
 use crate::model::mouse_info;
 use crate::model::screenshot_capture;
@@ -44,6 +45,11 @@ fn create_capture_window(handle: tauri::AppHandle) {
         }
         Ok(_ok) => {}
     };
+}
+
+#[tauri::command]
+fn get_vector_scope_image_as_payload() -> Payload {
+    return vector_scope_thread::get_vector_scope_image_as_payload();
 }
 
 #[tauri::command]
@@ -111,8 +117,9 @@ fn main() {
             print_log,
             get_mouse_position,
             create_capture_window,
+            get_vector_scope_image_as_payload,
             start_emit_capture_result,
-            stop_emit_capture_result
+            stop_emit_capture_result,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

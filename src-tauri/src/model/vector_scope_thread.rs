@@ -1,5 +1,5 @@
 use crate::graph_plotter;
-use crate::message;
+use crate::message::payload::Payload;
 use crate::model::worker_thread::Worker;
 use crate::model::worker_thread::WorkerTrait;
 use crate::screenshot_capture;
@@ -23,20 +23,8 @@ impl WorkerTrait for Worker {
             if to_stop.load(Ordering::Relaxed) {
                 break;
             }
-            let screenshot = screenshot_capture::capture_entire_sreen();
-            const CUSTOM_ENGINE: engine::GeneralPurpose =
-                engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
-            let vector_scope_image =
-                graph_plotter::draw_vectorscope(screenshot).expect("Failed to draw vector scope");
-            let base64 = CUSTOM_ENGINE.encode(vector_scope_image);
-
-            let data_uri = PREFIX_DATA_URI.to_string() + &base64;
-            window
-                .emit(
-                    "event-capture-screen",
-                    message::payload::Payload::new(data_uri),
-                )
-                .unwrap();
+            let payload = get_vector_scope_image_as_payload();
+            window.emit("event-capture-screen", payload).unwrap();
             thread::sleep(Duration::from_secs(1));
         });
     }
@@ -48,4 +36,19 @@ impl WorkerTrait for Worker {
 
 pub fn create_vector_scope_thread() -> Worker {
     Worker::new()
+}
+
+pub fn create_vector_scope_image() -> Vec<u8> {
+    let screenshot = screenshot_capture::capture_entire_sreen();
+    graph_plotter::draw_vectorscope(screenshot).expect("Failed to draw vector scope")
+}
+
+pub fn get_vector_scope_image_as_payload() -> Payload {
+    let vector_scope_image = create_vector_scope_image();
+
+    const CUSTOM_ENGINE: engine::GeneralPurpose =
+        engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
+    let base64 = CUSTOM_ENGINE.encode(vector_scope_image);
+    let data_uri = PREFIX_DATA_URI.to_string() + &base64;
+    Payload::new(data_uri)
 }
