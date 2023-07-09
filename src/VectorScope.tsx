@@ -36,7 +36,8 @@ export function Capture() {
   appWindow.setAlwaysOnTop(true);
 
   listenCaptureScreen();
-  invoke("emit_capture_result");
+  listenCloseWindow();
+  invoke("start_emit_capture_result");
 
   async function listenCaptureScreen() {
     await listen("event-capture-screen", (event: any) => {
@@ -47,8 +48,12 @@ export function Capture() {
       temporaryImage = objectURL.createObjectURL(imageDataBlob);
       setImage(temporaryImage);
       dataURI = "";
-      // repeat capturing
-      invoke("emit_capture_result");
+    });
+  }
+
+  async function listenCloseWindow() {
+    const unlisten = await appWindow.onCloseRequested(async (event) => {
+      invoke("stop_emit_capture_result");
     });
   }
 

@@ -1,5 +1,4 @@
 use display_info::DisplayInfo;
-use mouse_position::mouse_position::Mouse;
 use screenshots::Screen;
 
 #[allow(dead_code)]
@@ -28,19 +27,4 @@ pub fn capture_area(area_top_left: (i32, i32), area_bottom_right: (i32, i32)) ->
         image.height()
     );
     return image.rgba().clone();
-}
-
-#[allow(dead_code)]
-pub fn get_mouse_position() -> (i32, i32) {
-    let position = Mouse::get_mouse_position();
-    match position {
-        Mouse::Position { x, y } => {
-            println!("x: {}, y: {}", x, y);
-            return (x, y);
-        }
-        Mouse::Error => {
-            println!("Error getting mouse position");
-            return (0, 0);
-        }
-    }
 }
