@@ -1,6 +1,6 @@
 [package]
 name = "tauri-vector-scope"
-version = "0.1.0"
+version = "0.2.0"
 description = "Image analyze tool with Tauri"
 authors = ["Republic Of Korokke"]
 license = ""
@@ -13,7 +13,7 @@ edition = "2021"
 tauri-build = { version = "1.4", features = [] }
 
 [dependencies]
-tauri = { version = "1.4", features = [ "global-shortcut-all", "shell-open", "system-tray", "window-all"] }
+tauri = { version = "1.4", features = ["global-shortcut-all", "shell-open", "system-tray", "window-all"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 screenshots = "0.6.0"
