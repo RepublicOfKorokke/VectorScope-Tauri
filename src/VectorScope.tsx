@@ -2,7 +2,7 @@ import { render } from "solid-js/web";
 import { createSignal } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
-import { appWindow } from "@tauri-apps/api/window";
+import { appWindow, LogicalSize } from "@tauri-apps/api/window";
 
 import "./styles.css";
 
@@ -34,9 +34,11 @@ export function Capture() {
   appWindow.setTitle("Vector Scope");
   appWindow.setContentProtected(true);
   appWindow.setAlwaysOnTop(true);
+  appWindow.setSize(new LogicalSize(300, 320));
 
   listenCaptureScreen();
-  invoke("emit_capture_result");
+  listenCloseWindow();
+  invoke("start_emit_capture_result");
 
   async function listenCaptureScreen() {
     await listen("event-capture-screen", (event: any) => {
@@ -47,8 +49,12 @@ export function Capture() {
       temporaryImage = objectURL.createObjectURL(imageDataBlob);
       setImage(temporaryImage);
       dataURI = "";
-      // repeat capturing
-      invoke("emit_capture_result");
+    });
+  }
+
+  async function listenCloseWindow() {
+    const unlisten = await appWindow.onCloseRequested(async (event) => {
+      invoke("stop_emit_capture_result");
     });
   }
 

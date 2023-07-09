@@ -3263,6 +3263,7 @@ dependencies = [
  "display-info",
  "image",
  "mouse_position",
+ "once_cell",
  "plotters",
  "plotters-backend",
  "plotters-bitmap",

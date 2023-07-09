@@ -8,7 +8,7 @@ use std::io::Cursor;
 const GRAPH_WIDTH: u32 = 250;
 const GRAPH_HEIGHT: u32 = 250;
 const VECTOR_SCOPE_CENTER: (i32, i32) = ((GRAPH_WIDTH / 2) as i32, (GRAPH_HEIGHT / 2) as i32);
-const ANALYZE_SKIP_RATIO: usize = 64;
+const ANALYZE_SKIP_RATIO: usize = 256;
 
 pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     println!("image lenght: {}", image.len());
@@ -18,14 +18,12 @@ pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::E
             BitMapBackend::with_buffer_and_format(&mut graph, (GRAPH_WIDTH, GRAPH_HEIGHT)).unwrap();
         let mut index: usize = 0;
         while index < image.len() {
-            println!("index {}", index);
             let red = image[index];
             let green = image[index + 1];
             let blue = image[index + 2];
             let _alpha = image[index + 3];
 
             let rgb = Rgb::from(red.into(), green.into(), blue.into());
-            println!("{:?}", rgb);
 
             let backend_color = plotters_backend::BackendColor {
                 alpha: 1.0,

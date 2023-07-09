@@ -1,29 +1,28 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod capture_screen;
-mod plotter;
-use base64::{
-    alphabet,
-    engine::{self, general_purpose},
-    Engine as _,
-};
+mod message;
+mod model;
+use crate::model::graph_plotter;
+use crate::model::mouse_info;
+use crate::model::screenshot_capture;
+use crate::model::vector_scope_thread;
+use crate::model::worker_thread;
+use crate::model::worker_thread::WorkerTrait;
+use once_cell::sync::Lazy;
+use std::sync::RwLock;
 use tauri::Manager;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
 const TRAY_QUIT: &str = "QUIT";
 const TRAY_VECTOR_SCOPE: &str = "VECTOR_SCOPE";
-const PREFIX_DATA_URI: &str = "data:image/png;base64,";
 
-// the payload type must implement `Serialize` and `Clone`.
-#[derive(Clone, serde::Serialize)]
-struct Payload {
-    message: String,
-}
+static THREAD_VECTOR_SCOPE: Lazy<RwLock<worker_thread::Worker>> =
+    Lazy::new(|| RwLock::new(vector_scope_thread::create_vector_scope_thread()));
 
 #[tauri::command]
 fn get_mouse_position() -> (i32, i32) {
-    return capture_screen::get_mouse_position();
+    return mouse_info::get_mouse_position();
 }
 
 #[tauri::command]
@@ -48,20 +47,20 @@ fn create_capture_window(handle: tauri::AppHandle) {
 }
 
 #[tauri::command]
-fn emit_capture_result(window: tauri::Window) {
-    std::thread::spawn(move || {
-        let screenshot = capture_screen::capture_entire_sreen();
-        const CUSTOM_ENGINE: engine::GeneralPurpose =
-            engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
-        let vector_scope_image =
-            plotter::draw_vectorscope(screenshot).expect("Failed to draw vector scope");
-        let base64 = CUSTOM_ENGINE.encode(vector_scope_image);
+fn start_emit_capture_result(window: tauri::Window) {
+    println!("emit_capture_result");
+    THREAD_VECTOR_SCOPE
+        .try_read()
+        .expect("Failed to get THREAD_VECTOR_SCOPE")
+        .run(window);
+}
 
-        let data_uri = PREFIX_DATA_URI.to_string() + &base64;
-        window
-            .emit("event-capture-screen", Payload { message: data_uri })
-            .unwrap();
-    });
+#[tauri::command]
+fn stop_emit_capture_result() {
+    THREAD_VECTOR_SCOPE
+        .try_read()
+        .expect("Failed to get THREAD_VECTOR_SCOPE")
+        .stop();
 }
 
 fn main() {
@@ -112,7 +111,8 @@ fn main() {
             print_log,
             get_mouse_position,
             create_capture_window,
-            emit_capture_result
+            start_emit_capture_result,
+            stop_emit_capture_result
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
