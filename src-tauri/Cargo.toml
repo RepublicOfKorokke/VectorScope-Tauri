@@ -1,8 +1,8 @@
 [package]
 name = "tauri-vector-scope"
-version = "0.0.0"
-description = "A Tauri App"
-authors = ["you"]
+version = "0.1.0"
+description = "Image analyze tool with Tauri"
+authors = ["Republic Of Korokke"]
 license = ""
 repository = ""
 edition = "2021"
