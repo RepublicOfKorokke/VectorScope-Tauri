@@ -3,6 +3,7 @@
 
 mod message;
 mod model;
+use crate::message::payload::Payload;
 use crate::model::graph_plotter;
 use crate::model::mouse_info;
 use crate::model::screenshot_capture;
@@ -47,8 +48,12 @@ fn create_capture_window(handle: tauri::AppHandle) {
 }
 
 #[tauri::command]
-fn start_emit_capture_result(window: tauri::Window) {
-    println!("emit_capture_result");
+fn get_vector_scope_image_as_payload() -> Payload {
+    return vector_scope_thread::get_vector_scope_image_as_payload();
+}
+
+#[tauri::command]
+fn start_emit_vector_scope_image_as_payload(window: tauri::Window) {
     THREAD_VECTOR_SCOPE
         .try_read()
         .expect("Failed to get THREAD_VECTOR_SCOPE")
@@ -56,7 +61,7 @@ fn start_emit_capture_result(window: tauri::Window) {
 }
 
 #[tauri::command]
-fn stop_emit_capture_result() {
+fn stop_emit_vector_scope_image_as_payload() {
     THREAD_VECTOR_SCOPE
         .try_read()
         .expect("Failed to get THREAD_VECTOR_SCOPE")
@@ -111,8 +116,9 @@ fn main() {
             print_log,
             get_mouse_position,
             create_capture_window,
-            start_emit_capture_result,
-            stop_emit_capture_result
+            get_vector_scope_image_as_payload,
+            start_emit_vector_scope_image_as_payload,
+            stop_emit_vector_scope_image_as_payload,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

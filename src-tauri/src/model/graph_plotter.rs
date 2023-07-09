@@ -11,7 +11,6 @@ const VECTOR_SCOPE_CENTER: (i32, i32) = ((GRAPH_WIDTH / 2) as i32, (GRAPH_HEIGHT
 const ANALYZE_SKIP_RATIO: usize = 256;
 
 pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    println!("image lenght: {}", image.len());
     let mut graph = vec![16; (GRAPH_WIDTH * GRAPH_HEIGHT * 3) as usize];
     {
         let mut root: BitMapBackend<RGBPixel> =
