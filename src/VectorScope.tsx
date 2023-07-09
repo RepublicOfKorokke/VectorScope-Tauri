@@ -2,7 +2,7 @@ import { render } from "solid-js/web";
 import { createSignal } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
-import { appWindow } from "@tauri-apps/api/window";
+import { appWindow, LogicalSize } from "@tauri-apps/api/window";
 
 import "./styles.css";
 
@@ -34,6 +34,7 @@ export function Capture() {
   appWindow.setTitle("Vector Scope");
   appWindow.setContentProtected(true);
   appWindow.setAlwaysOnTop(true);
+  appWindow.setSize(new LogicalSize(300, 320));
 
   listenCaptureScreen();
   listenCloseWindow();
