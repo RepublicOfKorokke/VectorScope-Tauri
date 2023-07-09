@@ -8,6 +8,7 @@ import { register, unregisterAll } from "@tauri-apps/api/globalShortcut";
 import "./styles.css";
 
 const GLOBAL_SHORTCUT_KEY: string = "CommandOrControl+Shift+R";
+const LISTEN_EVENT_NAME: string = "event-vector-scope";
 
 let isListeningEmit = false;
 
@@ -50,7 +51,7 @@ export function Capture() {
     register(GLOBAL_SHORTCUT_KEY, () => {
       invoke("print_log", { text: `Manual reload vector scope view` });
       if (isListeningEmit) {
-        invoke("stop_emit_capture_result");
+        invoke("stop_emit_vector_scope_image_as_payload");
         isListeningEmit = false;
       }
 
@@ -67,7 +68,7 @@ export function Capture() {
   }
 
   async function listenCaptureScreen() {
-    await listen("event-capture-screen", (event: any) => {
+    await listen(LISTEN_EVENT_NAME, (event: any) => {
       invoke("print_log", { text: "receive cature result" });
       let dataURI = event.payload.message as string; // event.payload is payload
       if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
@@ -76,13 +77,13 @@ export function Capture() {
       setImage(temporaryImage);
       dataURI = "";
     });
-    invoke("start_emit_capture_result");
+    invoke("start_emit_vector_scope_image_as_payload");
     isListeningEmit = true;
   }
 
   async function listenCloseWindow() {
     const unlisten = await appWindow.onCloseRequested(async (event) => {
-      invoke("stop_emit_capture_result");
+      invoke("stop_emit_vector_scope_image_as_payload");
       unregisterAll();
     });
   }

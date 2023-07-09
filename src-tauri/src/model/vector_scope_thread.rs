@@ -14,6 +14,7 @@ use std::thread;
 use std::time::Duration;
 
 const PREFIX_DATA_URI: &str = "data:image/png;base64,";
+const EVENT_NAME: &str = "event-vector-scope";
 
 impl WorkerTrait for Worker {
     fn run(&self, window: tauri::Window) {
@@ -24,7 +25,7 @@ impl WorkerTrait for Worker {
                 break;
             }
             let payload = get_vector_scope_image_as_payload();
-            window.emit("event-capture-screen", payload).unwrap();
+            window.emit(EVENT_NAME, payload).unwrap();
             thread::sleep(Duration::from_secs(1));
         });
     }
