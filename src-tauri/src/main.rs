@@ -54,7 +54,6 @@ fn get_vector_scope_image_as_payload() -> Payload {
 
 #[tauri::command]
 fn start_emit_vector_scope_image_as_payload(window: tauri::Window) {
-    println!("emit_capture_result");
     THREAD_VECTOR_SCOPE
         .try_read()
         .expect("Failed to get THREAD_VECTOR_SCOPE")

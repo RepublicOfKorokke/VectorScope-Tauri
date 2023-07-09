@@ -30,7 +30,6 @@ impl WorkerTrait for Worker {
         });
     }
     fn stop(&self) {
-        println!("worker1 try to stop");
         self.to_stop.store(true, Ordering::Relaxed);
     }
 }
