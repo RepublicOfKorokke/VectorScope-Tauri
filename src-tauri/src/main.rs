@@ -8,7 +8,6 @@ use crate::model::graph_plotter;
 use crate::model::mouse_info;
 use crate::model::screenshot_capture;
 use crate::model::vector_scope_thread;
-use crate::model::worker_thread;
 use crate::model::worker_thread::WorkerTrait;
 use once_cell::sync::Lazy;
 use std::sync::RwLock;
@@ -19,7 +18,7 @@ const TRAY_QUIT: &str = "QUIT";
 const TRAY_VECTOR_SCOPE: &str = "VECTOR_SCOPE";
 const TRAY_CAPTURE_AREA_SETTING: &str = "CAPTURE_AREA_SETTING";
 
-static THREAD_VECTOR_SCOPE: Lazy<RwLock<worker_thread::Worker>> =
+static THREAD_VECTOR_SCOPE: Lazy<RwLock<vector_scope_thread::VectorScopeWorker>> =
     Lazy::new(|| RwLock::new(vector_scope_thread::create_vector_scope_thread()));
 
 #[tauri::command]
