@@ -1,16 +1,28 @@
-<h1 align="center">Analyze screen by Vector Scope with Tauri</h1>
+<h1 align="center">Analyze screen by Vector Scope with Tauri (Rust + JS)</h1>
+
+
 
 ![example](/Sample_1.jpg)
 ![example](/Sample_2.jpg)
 ![example](/Sample_3.jpg)
-
-## What's this?
-
+<div align="center">
 Lightweight screen color analyze tool powered by Tauri.
+</div>
 
-I want a simple yet low CPU / RAM usage app, so I made it.
+<h1>Features</h1>
 
-## TODO List
+- Show vector scope from screen content
+- Vector scope window is always on top; not blocked by other windows
+- Vector scope window is not captured; the analyze result is not containing vector scope itself
+- Stay on system tray, easy to reopen window
+  - Standby RAM usage: ~200MB
+  - Standby CPU usage: almost 0%
+    - Checked on my MacBook (M1 Pro)
+- Auto refresh: 1 sec interval
+- Manual refresh by: `Command Or Control + Shift + R` (from anywhere. not require focus on window.)
+  - This also stops auto refresh for less CPU usage
+
+<h1>TODO</h1>
 
 - [x] Add screen shot capability
 - [x] Add vector scope
@@ -26,3 +38,6 @@ I want a simple yet low CPU / RAM usage app, so I made it.
   - Use Object URL for less leak
   - And workaround: reopen window
 - [ ] Create app icon
+- And more...
+
+<h2>Thanks to the developers for the wonderful libraries.</h1>
