@@ -17,6 +17,7 @@ use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemT
 
 const TRAY_QUIT: &str = "QUIT";
 const TRAY_VECTOR_SCOPE: &str = "VECTOR_SCOPE";
+const TRAY_CAPTURE_AREA_SETTING: &str = "CAPTURE_AREA_SETTING";
 
 static THREAD_VECTOR_SCOPE: Lazy<RwLock<worker_thread::Worker>> =
     Lazy::new(|| RwLock::new(vector_scope_thread::create_vector_scope_thread()));
@@ -32,16 +33,32 @@ fn print_log(text: &str) {
 }
 
 #[tauri::command]
-fn create_capture_window(handle: tauri::AppHandle) {
-    let _capture_window = match tauri::WindowBuilder::new(
+fn create_vector_scope_window(handle: tauri::AppHandle) {
+    let _vector_scope_window = match tauri::WindowBuilder::new(
         &handle,
-        "capture_window", /* the unique window label */
+        "window_vector_scope", /* the unique window label */
         tauri::WindowUrl::App("index.html".into()),
     )
     .build()
     {
         Err(_err) => {
-            println!("Failed to create capture window")
+            println!("Failed to vector scope window")
+        }
+        Ok(_ok) => {}
+    };
+}
+
+#[tauri::command]
+fn create_capture_area_setting_window(handle: tauri::AppHandle) {
+    let _capture_area_setting_window = match tauri::WindowBuilder::new(
+        &handle,
+        "window_capture_area_setting", /* the unique window label */
+        tauri::WindowUrl::App("capture_area_setting_window.html".into()),
+    )
+    .build()
+    {
+        Err(_err) => {
+            println!("Failed to create capture area setting window")
         }
         Ok(_ok) => {}
     };
@@ -71,10 +88,13 @@ fn stop_emit_vector_scope_image_as_payload() {
 fn main() {
     let quit = CustomMenuItem::new(TRAY_QUIT, "Quit");
     let vector_scope = CustomMenuItem::new(TRAY_VECTOR_SCOPE, "Vector Scope");
+    let capture_area_setting =
+        CustomMenuItem::new(TRAY_CAPTURE_AREA_SETTING, "Capture area setting");
     let tray_menu = SystemTrayMenu::new()
         .add_item(quit)
         .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(vector_scope);
+        .add_item(vector_scope)
+        .add_item(capture_area_setting);
 
     tauri::Builder::default()
         .system_tray(SystemTray::new().with_menu(tray_menu))
@@ -106,7 +126,11 @@ fn main() {
                 }
                 TRAY_VECTOR_SCOPE => {
                     println!("system tray VECTOR_SCOPE click");
-                    create_capture_window(app.app_handle());
+                    create_vector_scope_window(app.app_handle());
+                }
+                TRAY_CAPTURE_AREA_SETTING => {
+                    println!("system tray CAPTURE_AREA_SETTING click");
+                    create_capture_area_setting_window(app.app_handle());
                 }
                 _ => {}
             },
@@ -115,7 +139,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             print_log,
             get_mouse_position,
-            create_capture_window,
+            create_vector_scope_window,
             get_vector_scope_image_as_payload,
             start_emit_vector_scope_image_as_payload,
             stop_emit_vector_scope_image_as_payload,
