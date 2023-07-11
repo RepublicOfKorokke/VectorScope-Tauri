@@ -35,8 +35,8 @@ export function CaptureAreaSetting() {
   window.addEventListener("dblclick", setCaptureArea);
 
   return (
-    <div>
-      <p> Double click window to set capture area</p>
+    <div style="display: flex; justify-content: center; align-items: center; height: 90vh;">
+      <p>Double click window to set capture area</p>
     </div>
   );
 }
