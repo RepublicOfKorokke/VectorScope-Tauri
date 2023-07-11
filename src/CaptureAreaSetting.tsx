@@ -18,13 +18,6 @@ async function setCaptureArea() {
   const x_2 = logicalPosition.x + logicalSize.width;
   const y_2 = logicalPosition.y + logicalSize.height;
 
-  invoke("print_log", {
-    text: `logical window top left ${x_1} / ${y_1}`,
-  });
-  invoke("print_log", {
-    text: `logical window bottom right ${x_2} / ${y_2}`,
-  });
-
   invoke("set_capture_area", { topLeft: [x_1, y_1], bottomRight: [x_2, y_2] });
 }
 

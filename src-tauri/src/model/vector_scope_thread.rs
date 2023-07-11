@@ -94,10 +94,8 @@ fn is_capture_area_valid() -> bool {
     }
 
     if *top_left.unwrap() == *bottom_right.unwrap() {
-        println!("capture area is not set");
         false
     } else {
-        println!("capture area is set");
         true
     }
 }
