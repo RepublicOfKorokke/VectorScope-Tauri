@@ -9,7 +9,7 @@ use std::sync::OnceLock;
 const GRAPH_WIDTH: u32 = 250;
 const GRAPH_HEIGHT: u32 = 250;
 const VECTOR_SCOPE_CENTER: (i32, i32) = ((GRAPH_WIDTH / 2) as i32, (GRAPH_HEIGHT / 2) as i32);
-const ANALYZE_SKIP_RATIO: usize = 256;
+const ANALYZE_SKIP_RATIO: usize = 64;
 
 static BUFFER_SIZE_GRAPH: OnceLock<usize> = OnceLock::new();
 static COLOR_LINE: OnceLock<plotters_backend::BackendColor> = OnceLock::new();
