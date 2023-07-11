@@ -4,7 +4,7 @@ import { appWindow } from "@tauri-apps/api/window";
 
 import "./styles.css";
 
-async function getWIndowPosition() {
+async function setCaptureArea() {
   const factor = await appWindow.scaleFactor();
 
   const physicalPosition = await appWindow.outerPosition();
@@ -24,12 +24,15 @@ async function getWIndowPosition() {
   invoke("print_log", {
     text: `logical window bottom right ${x_2} / ${y_2}`,
   });
+
+  invoke("set_capture_area", { topLeft: [x_1, y_1], bottomRight: [x_2, y_2] });
 }
 
 export function CaptureAreaSetting() {
   appWindow.setTitle("Capture Area Setting");
+  appWindow.setContentProtected(true);
   appWindow.setAlwaysOnTop(true);
-  window.addEventListener("dblclick", getWIndowPosition);
+  window.addEventListener("dblclick", setCaptureArea);
 
   return (
     <div>

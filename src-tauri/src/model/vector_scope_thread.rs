@@ -58,14 +58,48 @@ pub fn create_vector_scope_thread() -> VectorScopeWorker {
     VectorScopeWorker::new()
 }
 
+pub fn init_capture_area() {
+    let mut top_left_writer = CAPTURE_AREA_TOP_LEFT.write().unwrap();
+    *top_left_writer = (0, 0);
+    let mut bottom_right_writer = CAPTURE_AREA_BOTTOM_RIGHT.write().unwrap();
+    *bottom_right_writer = (0, 0);
+}
+
+pub fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
+    let mut top_left_writer = CAPTURE_AREA_TOP_LEFT.write().unwrap();
+    *top_left_writer = top_left;
+    let mut bottom_right_writer = CAPTURE_AREA_BOTTOM_RIGHT.write().unwrap();
+    *bottom_right_writer = bottom_right;
+}
+
 pub fn get_vector_scope_image_as_payload() -> Payload {
-    let vector_scope_image = create_vector_scope_image();
+    let vector_scope_image = match is_capture_area_valid() {
+        true => create_vector_scope_image_from_area(),
+        false => create_vector_scope_image(),
+    };
 
     let base64 = BASE64_ENGINE
-        .get_or_init(set_base64_engine)
+        .get_or_init(init_base64_engine)
         .encode(vector_scope_image);
     let data_uri = PREFIX_DATA_URI.to_string() + &base64;
     Payload::new(data_uri)
+}
+
+fn is_capture_area_valid() -> bool {
+    let top_left = CAPTURE_AREA_TOP_LEFT.try_read();
+    let bottom_right = CAPTURE_AREA_BOTTOM_RIGHT.try_read();
+
+    if top_left.is_err() || bottom_right.is_err() {
+        return false;
+    }
+
+    if *top_left.unwrap() == *bottom_right.unwrap() {
+        println!("capture area is not set");
+        false
+    } else {
+        println!("capture area is set");
+        true
+    }
 }
 
 fn create_vector_scope_image() -> Vec<u8> {
@@ -73,11 +107,14 @@ fn create_vector_scope_image() -> Vec<u8> {
     graph_plotter::draw_vectorscope(screenshot).expect("Failed to draw vector scope")
 }
 
-fn create_vector_scope_image_from_area(top_left: (i32, i32), bottom_right: (i32, i32)) -> Vec<u8> {
+fn create_vector_scope_image_from_area() -> Vec<u8> {
+    let top_left: (i32, i32) = *CAPTURE_AREA_TOP_LEFT.try_read().unwrap();
+    let bottom_right: (i32, i32) = *CAPTURE_AREA_BOTTOM_RIGHT.try_read().unwrap();
+
     let screenshot = screenshot_capture::capture_area(top_left, bottom_right);
     graph_plotter::draw_vectorscope(screenshot).expect("Failed to draw vector scope")
 }
 
-fn set_base64_engine() -> engine::GeneralPurpose {
+fn init_base64_engine() -> engine::GeneralPurpose {
     engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD)
 }

@@ -64,6 +64,16 @@ fn create_capture_area_setting_window(handle: tauri::AppHandle) {
 }
 
 #[tauri::command]
+fn init_capture_area() {
+    vector_scope_thread::init_capture_area();
+}
+
+#[tauri::command]
+fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
+    vector_scope_thread::set_capture_area(top_left, bottom_right);
+}
+
+#[tauri::command]
 fn get_vector_scope_image_as_payload() -> Payload {
     return vector_scope_thread::get_vector_scope_image_as_payload();
 }
@@ -139,6 +149,8 @@ fn main() {
             print_log,
             get_mouse_position,
             create_vector_scope_window,
+            init_capture_area,
+            set_capture_area,
             get_vector_scope_image_as_payload,
             start_emit_vector_scope_image_as_payload,
             stop_emit_vector_scope_image_as_payload,
