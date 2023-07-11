@@ -10,6 +10,10 @@
   justify-content: center;
   text-align: center;
 
+  /* for more natively UI */
+  cursor: default;
+  overflow: hidden;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
