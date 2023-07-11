@@ -10,6 +10,7 @@ use base64::{
 use once_cell::sync::Lazy;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
+use std::sync::OnceLock;
 use std::sync::RwLock;
 use std::thread;
 use std::time::Duration;
@@ -19,6 +20,7 @@ const EVENT_NAME: &str = "event-vector-scope";
 
 static CAPTURE_AREA_TOP_LEFT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
 static CAPTURE_AREA_BOTTOM_RIGHT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
+static BASE64_ENGINE: OnceLock<engine::GeneralPurpose> = OnceLock::new();
 
 pub struct VectorScopeWorker {
     pub worker_thread: worker_thread::Worker,
@@ -59,9 +61,9 @@ pub fn create_vector_scope_thread() -> VectorScopeWorker {
 pub fn get_vector_scope_image_as_payload() -> Payload {
     let vector_scope_image = create_vector_scope_image();
 
-    const CUSTOM_ENGINE: engine::GeneralPurpose =
-        engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
-    let base64 = CUSTOM_ENGINE.encode(vector_scope_image);
+    let base64 = BASE64_ENGINE
+        .get_or_init(set_base64_engine)
+        .encode(vector_scope_image);
     let data_uri = PREFIX_DATA_URI.to_string() + &base64;
     Payload::new(data_uri)
 }
@@ -74,4 +76,8 @@ fn create_vector_scope_image() -> Vec<u8> {
 fn create_vector_scope_image_from_area(top_left: (i32, i32), bottom_right: (i32, i32)) -> Vec<u8> {
     let screenshot = screenshot_capture::capture_area(top_left, bottom_right);
     graph_plotter::draw_vectorscope(screenshot).expect("Failed to draw vector scope")
+}
+
+fn set_base64_engine() -> engine::GeneralPurpose {
+    engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD)
 }
