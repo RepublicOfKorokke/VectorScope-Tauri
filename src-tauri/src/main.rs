@@ -14,6 +14,9 @@ use std::sync::RwLock;
 use tauri::Manager;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
+const WINDOW_LABEL_VECTOR_SCOPE: &str = "window_vector_scope";
+const WINDOW_LABEL_CAPTURE_AREA_SETTING: &str = "window_capture_area_setting";
+
 const TRAY_QUIT: &str = "QUIT";
 const TRAY_VECTOR_SCOPE: &str = "VECTOR_SCOPE";
 const TRAY_CAPTURE_AREA_SETTING: &str = "CAPTURE_AREA_SETTING";
@@ -35,13 +38,17 @@ fn print_log(text: &str) {
 fn create_vector_scope_window(handle: tauri::AppHandle) {
     let _vector_scope_window = match tauri::WindowBuilder::new(
         &handle,
-        "window_vector_scope", /* the unique window label */
+        WINDOW_LABEL_VECTOR_SCOPE,
         tauri::WindowUrl::App("index.html".into()),
     )
     .build()
     {
-        Err(_err) => {
-            println!("Failed to vector scope window")
+        Err(err) => {
+            println!("{err}");
+            let _ = handle
+                .get_window(WINDOW_LABEL_VECTOR_SCOPE)
+                .expect("vector scope window not found")
+                .set_focus();
         }
         Ok(_ok) => {}
     };
@@ -51,13 +58,17 @@ fn create_vector_scope_window(handle: tauri::AppHandle) {
 fn create_capture_area_setting_window(handle: tauri::AppHandle) {
     let _capture_area_setting_window = match tauri::WindowBuilder::new(
         &handle,
-        "window_capture_area_setting", /* the unique window label */
+        WINDOW_LABEL_CAPTURE_AREA_SETTING,
         tauri::WindowUrl::App("capture_area_setting_window.html".into()),
     )
     .build()
     {
-        Err(_err) => {
-            println!("Failed to create capture area setting window")
+        Err(err) => {
+            println!("{err}");
+            let _ = handle
+                .get_window(WINDOW_LABEL_CAPTURE_AREA_SETTING)
+                .expect("capture area setting window not found")
+                .set_focus();
         }
         Ok(_ok) => {}
     };
