@@ -7,7 +7,7 @@ use crate::message::payload::Payload;
 use crate::model::graph_plotter;
 use crate::model::mouse_info;
 use crate::model::screenshot_capture;
-use crate::model::vector_scope_thread;
+use crate::model::vector_scope;
 use crate::model::worker_thread::WorkerTrait;
 use once_cell::sync::Lazy;
 use std::sync::RwLock;
@@ -18,8 +18,8 @@ const TRAY_QUIT: &str = "QUIT";
 const TRAY_VECTOR_SCOPE: &str = "VECTOR_SCOPE";
 const TRAY_CAPTURE_AREA_SETTING: &str = "CAPTURE_AREA_SETTING";
 
-static THREAD_VECTOR_SCOPE: Lazy<RwLock<vector_scope_thread::VectorScopeWorker>> =
-    Lazy::new(|| RwLock::new(vector_scope_thread::create_vector_scope_thread()));
+static THREAD_VECTOR_SCOPE: Lazy<RwLock<vector_scope::VectorScopeWorker>> =
+    Lazy::new(|| RwLock::new(vector_scope::create_vector_scope_thread()));
 
 #[tauri::command]
 fn get_mouse_position() -> (i32, i32) {
@@ -65,17 +65,17 @@ fn create_capture_area_setting_window(handle: tauri::AppHandle) {
 
 #[tauri::command]
 fn init_capture_area() {
-    vector_scope_thread::init_capture_area();
+    vector_scope::init_capture_area();
 }
 
 #[tauri::command]
 fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
-    vector_scope_thread::set_capture_area(top_left, bottom_right);
+    vector_scope::set_capture_area(top_left, bottom_right);
 }
 
 #[tauri::command]
 fn get_vector_scope_image_as_payload() -> Payload {
-    return vector_scope_thread::get_vector_scope_image_as_payload();
+    return vector_scope::get_vector_scope_image_as_payload();
 }
 
 #[tauri::command]
