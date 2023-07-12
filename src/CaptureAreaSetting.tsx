@@ -11,12 +11,14 @@ export function CaptureAreaSetting() {
   appWindow.setAlwaysOnTop(true);
   appWindow.setSize(new LogicalSize(500, 500));
 
-  const [text, setText] = createSignal("");
-  setText("Double click window to set capture area");
+  const [firstLinetext, setFirstLineText] = createSignal("");
+  const [secondLineText, setSecondLineText] = createSignal("");
+  setFirstLineText("Double click: Set capture area");
+  setSecondLineText("Long click: Reset capture area");
 
   window.addEventListener("dblclick", setCaptureArea);
   async function setCaptureArea() {
-    setText("Capture Area has set");
+    setFirstLineText("Capture Area has set");
     const factor = await appWindow.scaleFactor();
 
     const physicalPosition = await appWindow.outerPosition();
@@ -29,6 +31,7 @@ export function CaptureAreaSetting() {
     const y_1 = logicalPosition.y;
     const x_2 = logicalPosition.x + logicalSize.width;
     const y_2 = logicalPosition.y + logicalSize.height;
+    setSecondLineText(`[${x_1}, ${y_1}] - [${x_2}, ${y_1}]`);
 
     await invoke("set_capture_area", {
       topLeft: [x_1, y_1],
@@ -40,7 +43,8 @@ export function CaptureAreaSetting() {
   window.addEventListener("mousedown", (event) => {
     longClickTimeout = setTimeout(function () {
       invoke("init_capture_area");
-      setText("Capture Area has removed");
+      setFirstLineText("Capture Area has removed");
+      setSecondLineText("");
     }, 1000);
   });
 
@@ -49,8 +53,9 @@ export function CaptureAreaSetting() {
   });
 
   return (
-    <div style="display: flex; justify-content: center; align-items: center; height: 90vh;">
-      <p>{text()}</p>
+    <div style="display: flex; flex-flow: column; justify-content: center; align-items: center; height: 90vh;">
+      <p class="fade-in">{firstLinetext()}</p>
+      <p class="fade-in">{secondLineText()}</p>
     </div>
   );
 }
