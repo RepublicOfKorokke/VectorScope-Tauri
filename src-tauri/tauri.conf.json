@@ -42,7 +42,7 @@
     "windows": [
       {
         "fullscreen": false,
-        "title": "tauri-vector-scope",
+        "label": "window_vector_scope",
         "width": 500,
         "height": 500
       }
