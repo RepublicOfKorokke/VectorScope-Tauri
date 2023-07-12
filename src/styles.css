@@ -10,6 +10,10 @@
   justify-content: center;
   text-align: center;
 
+  /* for more natively UI */
+  cursor: default;
+  overflow: hidden;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -28,4 +32,22 @@ h1 {
 
 img {
   width: 90vw;
+}
+
+.fade-in {
+  animation-name: animation-fade-in;
+  animation-delay: 0s;
+  animation-duration: 3s;
+  animation-fill-mode: forwards;
+  animation-direction: alternate;
+}
+
+@keyframes animation-fade-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }

@@ -49,14 +49,12 @@ export function Capture() {
 
   async function registerGlobalShortcutKey() {
     register(GLOBAL_SHORTCUT_KEY, () => {
-      invoke("print_log", { text: `Manual reload vector scope view` });
       if (isListeningEmit) {
         invoke("stop_emit_vector_scope_image_as_payload");
         isListeningEmit = false;
       }
 
       invoke("get_vector_scope_image_as_payload").then((payload: any) => {
-        invoke("print_log", { text: "receive cature result" });
         let dataURI = payload.message as string;
         if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
         let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
@@ -69,7 +67,6 @@ export function Capture() {
 
   async function listenCaptureScreen() {
     await listen(LISTEN_EVENT_NAME, (event: any) => {
-      invoke("print_log", { text: "receive cature result" });
       let dataURI = event.payload.message as string; // event.payload is payload
       if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
       let imageDataBlob: Blob = convertDataURIToBlob(dataURI);

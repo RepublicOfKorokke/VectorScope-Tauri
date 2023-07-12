@@ -2,7 +2,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 pub struct Worker {
-    pub to_stop: Arc<AtomicBool>,
+    pub keep_alive: Arc<AtomicBool>,
 }
 
 pub trait WorkerTrait {
@@ -13,7 +13,7 @@ pub trait WorkerTrait {
 impl Worker {
     pub fn new() -> Self {
         Self {
-            to_stop: Arc::new(AtomicBool::new(false)),
+            keep_alive: Arc::new(AtomicBool::new(true)),
         }
     }
 }

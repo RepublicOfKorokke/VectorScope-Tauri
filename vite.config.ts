@@ -26,7 +26,11 @@ export default defineConfig(async () => ({
     sourcemap: !!process.env.TAURI_DEBUG,
     rollupOptions: {
       input: {
-        index: resolve(__dirname, "index.html"),
+        vector_scope: resolve(__dirname, "index.html"),
+        capture_area_setting: resolve(
+          __dirname,
+          "capture_area_setting_window.html"
+        ),
       },
     },
   },
