@@ -12,11 +12,23 @@ const VECTOR_SCOPE_CENTER: (i32, i32) = ((GRAPH_WIDTH / 2) as i32, (GRAPH_HEIGHT
 const ANALYZE_SKIP_RATIO: usize = 64;
 
 static BUFFER_SIZE_GRAPH: OnceLock<usize> = OnceLock::new();
+#[cold]
+fn init_graph_size() -> usize {
+    (GRAPH_WIDTH * GRAPH_HEIGHT * 3) as usize
+}
+
 static COLOR_LINE: OnceLock<plotters_backend::BackendColor> = OnceLock::new();
+#[cold]
+fn init_line_color() -> plotters_backend::BackendColor {
+    plotters_backend::BackendColor {
+        alpha: 1.0,
+        rgb: (100, 100, 100),
+    }
+}
 
 #[inline(always)]
 pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    let mut graph = vec![16; *BUFFER_SIZE_GRAPH.get_or_init(set_graph_size)];
+    let mut graph = vec![16; *BUFFER_SIZE_GRAPH.get_or_init(init_graph_size)];
     {
         let mut root: BitMapBackend<RGBPixel> =
             BitMapBackend::with_buffer_and_format(&mut graph, (GRAPH_WIDTH, GRAPH_HEIGHT)).unwrap();
@@ -53,14 +65,14 @@ pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::E
             root.draw_line(
                 (0, VECTOR_SCOPE_CENTER.1),
                 (GRAPH_WIDTH.try_into().unwrap(), VECTOR_SCOPE_CENTER.1),
-                COLOR_LINE.get_or_init(set_line_color),
+                COLOR_LINE.get_or_init(init_line_color),
             )
             .expect("Error on draw line");
 
             root.draw_line(
                 (VECTOR_SCOPE_CENTER.0, 0),
                 (VECTOR_SCOPE_CENTER.0, GRAPH_HEIGHT.try_into().unwrap()),
-                COLOR_LINE.get_or_init(set_line_color),
+                COLOR_LINE.get_or_init(init_line_color),
             )
             .expect("Error on draw line");
 
@@ -80,17 +92,4 @@ pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::E
     )
     .expect("Failed to write waveform buffer for create image");
     Ok(graph_as_image)
-}
-
-#[cold]
-fn set_graph_size() -> usize {
-    (GRAPH_WIDTH * GRAPH_HEIGHT * 3) as usize
-}
-
-#[cold]
-fn set_line_color() -> plotters_backend::BackendColor {
-    plotters_backend::BackendColor {
-        alpha: 1.0,
-        rgb: (100, 100, 100),
-    }
 }
