@@ -19,7 +19,8 @@ use std::time::Duration;
 use tauri::Manager;
 
 const PREFIX_DATA_URI: &str = "data:image/png;base64,";
-const EVENT_NAME: &str = "event-vector-scope";
+const EVENT_NAME_VECTOR_SCOPE: &str = "event-vector-scope";
+const EVENT_NAME_WAVEFORM: &str = "event-waveform";
 
 static BASE64_ENGINE: OnceLock<engine::GeneralPurpose> = OnceLock::new();
 
@@ -53,7 +54,21 @@ impl worker_thread_base::WorkerTrait for VectorScopeWorker {
                 break;
             }
             let payload = get_graph_image_as_payload();
-            app_handle.emit_all(EVENT_NAME, payload).unwrap();
+            if !payload.base64_vector_scope.is_empty() {
+                app_handle
+                    .emit_to(
+                        super::WINDOW_LABEL_VECTOR_SCOPE,
+                        EVENT_NAME_VECTOR_SCOPE,
+                        &payload,
+                    )
+                    .unwrap();
+            }
+            if !payload.base64_waveform.is_empty() {
+                println!("waveform_image is empty");
+                app_handle
+                    .emit_to(super::WINDOW_LABEL_WAVEFORM, EVENT_NAME_WAVEFORM, &payload)
+                    .unwrap();
+            }
             thread::sleep(Duration::from_secs(1));
         });
     }

@@ -10,7 +10,8 @@ use crate::model::screenshot_capture;
 use tauri::Manager;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
-const WINDOW_LABEL_VECTOR_SCOPE: &str = "window_vector_scope";
+pub const WINDOW_LABEL_VECTOR_SCOPE: &str = "window_vector_scope";
+pub const WINDOW_LABEL_WAVEFORM: &str = "window_waveform";
 const WINDOW_LABEL_CAPTURE_AREA_SETTING: &str = "window_capture_area_setting";
 
 const TRAY_QUIT: &str = "QUIT";
