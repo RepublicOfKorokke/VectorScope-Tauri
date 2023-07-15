@@ -44,16 +44,14 @@ export function Capture() {
 
   registerGlobalShortcutKey();
 
-  listenCaptureScreen();
+  startListenCaptureScreen();
   listenCloseWindow();
+
+  window.addEventListener("dblclick", startListenCaptureScreen);
 
   async function registerGlobalShortcutKey() {
     register(GLOBAL_SHORTCUT_KEY, () => {
-      if (isListeningEmit) {
-        invoke("stop_emit_vector_scope_image_as_payload");
-        isListeningEmit = false;
-      }
-
+      stopListenCaptureScreen();
       invoke("get_vector_scope_image_as_payload").then((payload: any) => {
         let dataURI = payload.message as string;
         if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
@@ -65,21 +63,30 @@ export function Capture() {
     });
   }
 
-  async function listenCaptureScreen() {
-    await listen(LISTEN_EVENT_NAME, (event: any) => {
-      let dataURI = event.payload.message as string; // event.payload is payload
-      if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
-      let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
-      temporaryImage = objectURL.createObjectURL(imageDataBlob);
-      setImage(temporaryImage);
-      dataURI = "";
-    });
-    invoke("start_emit_vector_scope_image_as_payload");
-    isListeningEmit = true;
+  async function startListenCaptureScreen() {
+    if (!isListeningEmit) {
+      await listen(LISTEN_EVENT_NAME, (event: any) => {
+        let dataURI = event.payload.message as string; // event.payload is payload
+        if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
+        let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
+        temporaryImage = objectURL.createObjectURL(imageDataBlob);
+        setImage(temporaryImage);
+        dataURI = "";
+      });
+      invoke("start_emit_vector_scope_image_as_payload");
+      isListeningEmit = true;
+    }
+  }
+
+  async function stopListenCaptureScreen() {
+    if (isListeningEmit) {
+      invoke("stop_emit_vector_scope_image_as_payload");
+      isListeningEmit = false;
+    }
   }
 
   async function listenCloseWindow() {
-    const unlisten = await appWindow.onCloseRequested(async (event) => {
+    await appWindow.onCloseRequested(async () => {
       invoke("stop_emit_vector_scope_image_as_payload");
       unregisterAll();
     });
