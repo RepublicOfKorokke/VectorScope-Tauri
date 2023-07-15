@@ -14,6 +14,7 @@ const ANALYZE_SKIP_RATIO: usize = 64;
 static BUFFER_SIZE_GRAPH: OnceLock<usize> = OnceLock::new();
 static COLOR_LINE: OnceLock<plotters_backend::BackendColor> = OnceLock::new();
 
+#[inline(always)]
 pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let mut graph = vec![16; *BUFFER_SIZE_GRAPH.get_or_init(set_graph_size)];
     {
@@ -81,10 +82,12 @@ pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::E
     Ok(graph_as_image)
 }
 
+#[cold]
 fn set_graph_size() -> usize {
     (GRAPH_WIDTH * GRAPH_HEIGHT * 3) as usize
 }
 
+#[cold]
 fn set_line_color() -> plotters_backend::BackendColor {
     plotters_backend::BackendColor {
         alpha: 1.0,
