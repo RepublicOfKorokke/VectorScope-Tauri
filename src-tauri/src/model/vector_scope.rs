@@ -54,6 +54,7 @@ impl worker_thread::WorkerTrait for VectorScopeWorker {
     }
 }
 
+#[cold]
 pub fn create_vector_scope_thread() -> VectorScopeWorker {
     VectorScopeWorker::new()
 }
@@ -113,6 +114,7 @@ fn create_vector_scope_image_from_area() -> Vec<u8> {
     graph_plotter::draw_vectorscope(screenshot).expect("Failed to draw vector scope")
 }
 
+#[cold]
 fn init_base64_engine() -> engine::GeneralPurpose {
     engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD)
 }
