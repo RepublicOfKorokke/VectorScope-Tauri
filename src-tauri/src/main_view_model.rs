@@ -1,6 +1,6 @@
 use crate::graph_plotter;
 use crate::message::payload::Payload;
-use crate::model::worker_thread;
+use crate::model::worker_thread_base;
 use crate::screenshot_capture;
 use base64::{
     alphabet,
@@ -23,18 +23,18 @@ static CAPTURE_AREA_BOTTOM_RIGHT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock
 static BASE64_ENGINE: OnceLock<engine::GeneralPurpose> = OnceLock::new();
 
 pub struct VectorScopeWorker {
-    pub worker_thread: worker_thread::Worker,
+    pub worker_thread: worker_thread_base::Worker,
 }
 
 impl VectorScopeWorker {
     pub fn new() -> Self {
         Self {
-            worker_thread: worker_thread::Worker::new(),
+            worker_thread: worker_thread_base::Worker::new(),
         }
     }
 }
 
-impl worker_thread::WorkerTrait for VectorScopeWorker {
+impl worker_thread_base::WorkerTrait for VectorScopeWorker {
     fn run(&self, window: tauri::Window) {
         let keep_alive = Arc::clone(&self.worker_thread.keep_alive);
         keep_alive.store(true, Ordering::Relaxed);

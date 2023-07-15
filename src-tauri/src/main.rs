@@ -1,14 +1,14 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod main_view_model;
 mod message;
 mod model;
 use crate::message::payload::Payload;
 use crate::model::graph_plotter;
 use crate::model::mouse_info;
 use crate::model::screenshot_capture;
-use crate::model::vector_scope;
-use crate::model::worker_thread::WorkerTrait;
+use crate::model::worker_thread_base::WorkerTrait;
 use once_cell::sync::Lazy;
 use std::sync::RwLock;
 use tauri::Manager;
@@ -21,8 +21,8 @@ const TRAY_QUIT: &str = "QUIT";
 const TRAY_VECTOR_SCOPE: &str = "VECTOR_SCOPE";
 const TRAY_CAPTURE_AREA_SETTING: &str = "CAPTURE_AREA_SETTING";
 
-static THREAD_VECTOR_SCOPE: Lazy<RwLock<vector_scope::VectorScopeWorker>> =
-    Lazy::new(|| RwLock::new(vector_scope::create_vector_scope_thread()));
+static THREAD_VECTOR_SCOPE: Lazy<RwLock<main_view_model::VectorScopeWorker>> =
+    Lazy::new(|| RwLock::new(main_view_model::create_vector_scope_thread()));
 
 #[tauri::command]
 fn get_mouse_position() -> (i32, i32) {
@@ -76,17 +76,17 @@ fn create_capture_area_setting_window(handle: tauri::AppHandle) {
 
 #[tauri::command]
 fn init_capture_area() {
-    vector_scope::init_capture_area();
+    main_view_model::init_capture_area();
 }
 
 #[tauri::command]
 fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
-    vector_scope::set_capture_area(top_left, bottom_right);
+    main_view_model::set_capture_area(top_left, bottom_right);
 }
 
 #[tauri::command]
 fn get_vector_scope_image_as_payload() -> Payload {
-    return vector_scope::get_vector_scope_image_as_payload();
+    return main_view_model::get_vector_scope_image_as_payload();
 }
 
 #[tauri::command]
