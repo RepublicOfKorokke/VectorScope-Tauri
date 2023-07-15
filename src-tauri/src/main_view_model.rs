@@ -30,14 +30,14 @@ static IS_VECTOR_SCOPE_REQUIRED: Lazy<Arc<AtomicBool>> =
     Lazy::new(|| Arc::new(AtomicBool::new(true)));
 static IS_WAVEFORM_REQUIRED: Lazy<Arc<AtomicBool>> = Lazy::new(|| Arc::new(AtomicBool::new(false)));
 
-static THREAD_VECTOR_SCOPE: Lazy<RwLock<VectorScopeWorker>> =
+static THREAD_IMAGE_PROCESS: Lazy<RwLock<ImageProcessThread>> =
     Lazy::new(|| RwLock::new(create_vector_scope_thread()));
 
-pub struct VectorScopeWorker {
+pub struct ImageProcessThread {
     pub worker_thread: worker_thread_base::Worker,
 }
 
-impl VectorScopeWorker {
+impl ImageProcessThread {
     pub fn new() -> Self {
         Self {
             worker_thread: worker_thread_base::Worker::new(),
@@ -45,7 +45,7 @@ impl VectorScopeWorker {
     }
 }
 
-impl worker_thread_base::WorkerTrait for VectorScopeWorker {
+impl worker_thread_base::WorkerTrait for ImageProcessThread {
     fn run(&self, app_handle: tauri::AppHandle) {
         let keep_alive = Arc::clone(&self.worker_thread.keep_alive);
         keep_alive.store(true, Ordering::Relaxed);
@@ -80,8 +80,8 @@ impl worker_thread_base::WorkerTrait for VectorScopeWorker {
 }
 
 #[cold]
-pub fn create_vector_scope_thread() -> VectorScopeWorker {
-    VectorScopeWorker::new()
+pub fn create_vector_scope_thread() -> ImageProcessThread {
+    ImageProcessThread::new()
 }
 
 #[tauri::command]
@@ -167,13 +167,13 @@ fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
         || IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed)
     {
         println!("start thread");
-        THREAD_VECTOR_SCOPE
+        THREAD_IMAGE_PROCESS
             .try_read()
             .expect("Failed to read thread")
             .run(app_handle)
     } else {
         println!("stop thread");
-        THREAD_VECTOR_SCOPE
+        THREAD_IMAGE_PROCESS
             .try_read()
             .expect("Failed to read thread")
             .stop()
