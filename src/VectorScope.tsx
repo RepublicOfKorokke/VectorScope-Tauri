@@ -86,7 +86,7 @@ export function Capture() {
   }
 
   async function listenCloseWindow() {
-    const unlisten = await appWindow.onCloseRequested(async (event) => {
+    await appWindow.onCloseRequested(async () => {
       invoke("stop_emit_vector_scope_image_as_payload");
       unregisterAll();
     });
