@@ -16,6 +16,7 @@ use std::sync::OnceLock;
 use std::sync::RwLock;
 use std::thread;
 use std::time::Duration;
+use tauri::Manager;
 
 const PREFIX_DATA_URI: &str = "data:image/png;base64,";
 const EVENT_NAME: &str = "event-vector-scope";
@@ -44,7 +45,7 @@ impl VectorScopeWorker {
 }
 
 impl worker_thread_base::WorkerTrait for VectorScopeWorker {
-    fn run(&self, window: tauri::Window) {
+    fn run(&self, app_handle: tauri::AppHandle) {
         let keep_alive = Arc::clone(&self.worker_thread.keep_alive);
         keep_alive.store(true, Ordering::Relaxed);
         thread::spawn(move || loop {
@@ -52,7 +53,7 @@ impl worker_thread_base::WorkerTrait for VectorScopeWorker {
                 break;
             }
             let payload = get_graph_image_as_payload();
-            window.emit(EVENT_NAME, payload).unwrap();
+            app_handle.emit_all(EVENT_NAME, payload).unwrap();
             thread::sleep(Duration::from_secs(1));
         });
     }
@@ -85,29 +86,15 @@ pub fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
 }
 
 #[tauri::command]
-pub fn set_is_vector_scope_required(state: bool) {
-    IS_VECTOR_SCOPE_REQUIRED.store(state, Ordering::Relaxed)
+pub fn set_is_vector_scope_required(app_handle: tauri::AppHandle, state: bool) {
+    IS_VECTOR_SCOPE_REQUIRED.store(state, Ordering::Relaxed);
+    check_thread_need_to_be_keep_alive(app_handle);
 }
 
 #[tauri::command]
-pub fn set_is_waveform_required(state: bool) {
-    IS_WAVEFORM_REQUIRED.store(state, Ordering::Relaxed)
-}
-
-#[tauri::command]
-pub fn start_emit_vector_scope_image_as_payload(window: tauri::Window) {
-    THREAD_VECTOR_SCOPE
-        .try_read()
-        .expect("Failed to get THREAD_VECTOR_SCOPE")
-        .run(window);
-}
-
-#[tauri::command]
-pub fn stop_emit_vector_scope_image_as_payload() {
-    THREAD_VECTOR_SCOPE
-        .try_read()
-        .expect("Failed to get THREAD_VECTOR_SCOPE")
-        .stop();
+pub fn set_is_waveform_required(app_handle: tauri::AppHandle, state: bool) {
+    IS_WAVEFORM_REQUIRED.store(state, Ordering::Relaxed);
+    check_thread_need_to_be_keep_alive(app_handle);
 }
 
 #[tauri::command]
@@ -157,6 +144,24 @@ fn is_capture_area_valid() -> bool {
         false
     } else {
         true
+    }
+}
+
+fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
+    if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed)
+        || IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed)
+    {
+        println!("start thread");
+        THREAD_VECTOR_SCOPE
+            .try_read()
+            .expect("Failed to read thread")
+            .run(app_handle)
+    } else {
+        println!("stop thread");
+        THREAD_VECTOR_SCOPE
+            .try_read()
+            .expect("Failed to read thread")
+            .stop()
     }
 }
 

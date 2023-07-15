@@ -6,7 +6,7 @@ pub struct Worker {
 }
 
 pub trait WorkerTrait {
-    fn run(&self, window: tauri::Window);
+    fn run(&self, app_handle: tauri::AppHandle);
     fn stop(&self);
 }
 

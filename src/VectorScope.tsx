@@ -73,7 +73,7 @@ export function Capture() {
         setImage(temporaryImage);
         dataURI = "";
       });
-      invoke("start_emit_vector_scope_image_as_payload");
+      invoke("set_is_vector_scope_required", { state: true });
       isListeningEmit = true;
     }
   }

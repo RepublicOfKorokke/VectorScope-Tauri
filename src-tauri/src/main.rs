@@ -28,9 +28,9 @@ fn print_log(text: &str) {
 }
 
 #[tauri::command]
-fn create_vector_scope_window(handle: tauri::AppHandle) {
+fn create_vector_scope_window(app_handle: tauri::AppHandle) {
     let _vector_scope_window = match tauri::WindowBuilder::new(
-        &handle,
+        &app_handle,
         WINDOW_LABEL_VECTOR_SCOPE,
         tauri::WindowUrl::App("index.html".into()),
     )
@@ -38,19 +38,19 @@ fn create_vector_scope_window(handle: tauri::AppHandle) {
     {
         Err(err) => {
             println!("{err}");
-            let _ = handle
+            let _ = app_handle
                 .get_window(WINDOW_LABEL_VECTOR_SCOPE)
                 .expect("vector scope window not found")
                 .set_focus();
         }
-        Ok(_ok) => main_view_model::set_is_vector_scope_required(true),
+        Ok(_ok) => {}
     };
 }
 
 #[tauri::command]
-fn create_capture_area_setting_window(handle: tauri::AppHandle) {
+fn create_capture_area_setting_window(app_handle: tauri::AppHandle) {
     let _capture_area_setting_window = match tauri::WindowBuilder::new(
-        &handle,
+        &app_handle,
         WINDOW_LABEL_CAPTURE_AREA_SETTING,
         tauri::WindowUrl::App("capture_area_setting_window.html".into()),
     )
@@ -58,7 +58,7 @@ fn create_capture_area_setting_window(handle: tauri::AppHandle) {
     {
         Err(err) => {
             println!("{err}");
-            let _ = handle
+            let _ = app_handle
                 .get_window(WINDOW_LABEL_CAPTURE_AREA_SETTING)
                 .expect("capture area setting window not found")
                 .set_focus();
@@ -122,8 +122,6 @@ fn main() {
             print_log,
             get_mouse_position,
             create_vector_scope_window,
-            main_view_model::start_emit_vector_scope_image_as_payload,
-            main_view_model::stop_emit_vector_scope_image_as_payload,
             main_view_model::initialize_capture_area,
             main_view_model::set_capture_area,
             main_view_model::set_is_vector_scope_required,
