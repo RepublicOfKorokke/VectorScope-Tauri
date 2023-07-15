@@ -88,6 +88,7 @@ export function Capture() {
   async function listenCloseWindow() {
     await appWindow.onCloseRequested(async () => {
       invoke("stop_emit_vector_scope_image_as_payload");
+      invoke("set_is_vector_scope_required", { state: false });
       unregisterAll();
     });
   }
