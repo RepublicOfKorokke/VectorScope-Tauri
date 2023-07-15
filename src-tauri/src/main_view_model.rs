@@ -1,6 +1,7 @@
 use crate::graph_plotter;
 use crate::message::payload::Payload;
 use crate::model::worker_thread_base;
+use crate::model::worker_thread_base::WorkerTrait;
 use crate::screenshot_capture;
 use base64::{
     alphabet,
@@ -19,12 +20,16 @@ use std::time::Duration;
 const PREFIX_DATA_URI: &str = "data:image/png;base64,";
 const EVENT_NAME: &str = "event-vector-scope";
 
+static BASE64_ENGINE: OnceLock<engine::GeneralPurpose> = OnceLock::new();
+
 static CAPTURE_AREA_TOP_LEFT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
 static CAPTURE_AREA_BOTTOM_RIGHT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
 static IS_VECTOR_SCOPE_REQUIRED: Lazy<Arc<AtomicBool>> =
     Lazy::new(|| Arc::new(AtomicBool::new(true)));
 static IS_WAVEFORM_REQUIRED: Lazy<Arc<AtomicBool>> = Lazy::new(|| Arc::new(AtomicBool::new(false)));
-static BASE64_ENGINE: OnceLock<engine::GeneralPurpose> = OnceLock::new();
+
+static THREAD_VECTOR_SCOPE: Lazy<RwLock<VectorScopeWorker>> =
+    Lazy::new(|| RwLock::new(create_vector_scope_thread()));
 
 pub struct VectorScopeWorker {
     pub worker_thread: worker_thread_base::Worker,
@@ -63,13 +68,15 @@ pub fn create_vector_scope_thread() -> VectorScopeWorker {
     VectorScopeWorker::new()
 }
 
-pub fn init_capture_area() {
+#[tauri::command]
+pub fn initialize_capture_area() {
     let mut top_left_writer = CAPTURE_AREA_TOP_LEFT.write().unwrap();
     *top_left_writer = (0, 0);
     let mut bottom_right_writer = CAPTURE_AREA_BOTTOM_RIGHT.write().unwrap();
     *bottom_right_writer = (0, 0);
 }
 
+#[tauri::command]
 pub fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
     let mut top_left_writer = CAPTURE_AREA_TOP_LEFT.write().unwrap();
     *top_left_writer = top_left;
@@ -77,6 +84,33 @@ pub fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
     *bottom_right_writer = bottom_right;
 }
 
+#[tauri::command]
+pub fn set_is_vector_scope_required(state: bool) {
+    IS_VECTOR_SCOPE_REQUIRED.store(state, Ordering::Relaxed)
+}
+
+#[tauri::command]
+pub fn set_is_waveform_required(state: bool) {
+    IS_WAVEFORM_REQUIRED.store(state, Ordering::Relaxed)
+}
+
+#[tauri::command]
+pub fn start_emit_vector_scope_image_as_payload(window: tauri::Window) {
+    THREAD_VECTOR_SCOPE
+        .try_read()
+        .expect("Failed to get THREAD_VECTOR_SCOPE")
+        .run(window);
+}
+
+#[tauri::command]
+pub fn stop_emit_vector_scope_image_as_payload() {
+    THREAD_VECTOR_SCOPE
+        .try_read()
+        .expect("Failed to get THREAD_VECTOR_SCOPE")
+        .stop();
+}
+
+#[tauri::command]
 pub fn get_graph_image_as_payload() -> Payload {
     let screenshot = match is_capture_area_valid() {
         true => {

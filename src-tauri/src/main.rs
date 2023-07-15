@@ -4,13 +4,9 @@
 mod main_view_model;
 mod message;
 mod model;
-use crate::message::payload::Payload;
 use crate::model::graph_plotter;
 use crate::model::mouse_info;
 use crate::model::screenshot_capture;
-use crate::model::worker_thread_base::WorkerTrait;
-use once_cell::sync::Lazy;
-use std::sync::RwLock;
 use tauri::Manager;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
@@ -20,9 +16,6 @@ const WINDOW_LABEL_CAPTURE_AREA_SETTING: &str = "window_capture_area_setting";
 const TRAY_QUIT: &str = "QUIT";
 const TRAY_VECTOR_SCOPE: &str = "VECTOR_SCOPE";
 const TRAY_CAPTURE_AREA_SETTING: &str = "CAPTURE_AREA_SETTING";
-
-static THREAD_VECTOR_SCOPE: Lazy<RwLock<main_view_model::VectorScopeWorker>> =
-    Lazy::new(|| RwLock::new(main_view_model::create_vector_scope_thread()));
 
 #[tauri::command]
 fn get_mouse_position() -> (i32, i32) {
@@ -50,7 +43,7 @@ fn create_vector_scope_window(handle: tauri::AppHandle) {
                 .expect("vector scope window not found")
                 .set_focus();
         }
-        Ok(_ok) => {}
+        Ok(_ok) => main_view_model::set_is_vector_scope_required(true),
     };
 }
 
@@ -72,37 +65,6 @@ fn create_capture_area_setting_window(handle: tauri::AppHandle) {
         }
         Ok(_ok) => {}
     };
-}
-
-#[tauri::command]
-fn init_capture_area() {
-    main_view_model::init_capture_area();
-}
-
-#[tauri::command]
-fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
-    main_view_model::set_capture_area(top_left, bottom_right);
-}
-
-#[tauri::command]
-fn get_vector_scope_image_as_payload() -> Payload {
-    return main_view_model::get_graph_image_as_payload();
-}
-
-#[tauri::command]
-fn start_emit_vector_scope_image_as_payload(window: tauri::Window) {
-    THREAD_VECTOR_SCOPE
-        .try_read()
-        .expect("Failed to get THREAD_VECTOR_SCOPE")
-        .run(window);
-}
-
-#[tauri::command]
-fn stop_emit_vector_scope_image_as_payload() {
-    THREAD_VECTOR_SCOPE
-        .try_read()
-        .expect("Failed to get THREAD_VECTOR_SCOPE")
-        .stop();
 }
 
 fn main() {
@@ -160,11 +122,13 @@ fn main() {
             print_log,
             get_mouse_position,
             create_vector_scope_window,
-            init_capture_area,
-            set_capture_area,
-            get_vector_scope_image_as_payload,
-            start_emit_vector_scope_image_as_payload,
-            stop_emit_vector_scope_image_as_payload,
+            main_view_model::start_emit_vector_scope_image_as_payload,
+            main_view_model::stop_emit_vector_scope_image_as_payload,
+            main_view_model::initialize_capture_area,
+            main_view_model::set_capture_area,
+            main_view_model::set_is_vector_scope_required,
+            main_view_model::set_is_waveform_required,
+            main_view_model::get_graph_image_as_payload,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
