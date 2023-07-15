@@ -53,7 +53,7 @@ export function Capture() {
     register(GLOBAL_SHORTCUT_KEY, () => {
       stopListenCaptureScreen();
       invoke("get_vector_scope_image_as_payload").then((payload: any) => {
-        let dataURI = payload.message as string;
+        let dataURI = payload.base64_vector_scope as string;
         if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
         let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
         temporaryImage = objectURL.createObjectURL(imageDataBlob);
@@ -66,7 +66,7 @@ export function Capture() {
   async function startListenCaptureScreen() {
     if (!isListeningEmit) {
       await listen(LISTEN_EVENT_NAME, (event: any) => {
-        let dataURI = event.payload.message as string; // event.payload is payload
+        let dataURI = event.payload.base64_vector_scope as string; // event.payload is payload
         if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
         let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
         temporaryImage = objectURL.createObjectURL(imageDataBlob);

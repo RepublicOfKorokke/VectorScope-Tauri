@@ -27,7 +27,7 @@ fn init_line_color() -> plotters_backend::BackendColor {
 }
 
 #[inline(always)]
-pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+pub fn draw_vectorscope(image: &Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let mut graph = vec![16; *BUFFER_SIZE_GRAPH.get_or_init(init_graph_size)];
     {
         let mut root: BitMapBackend<RGBPixel> =

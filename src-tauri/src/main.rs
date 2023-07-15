@@ -86,7 +86,7 @@ fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
 
 #[tauri::command]
 fn get_vector_scope_image_as_payload() -> Payload {
-    return main_view_model::get_vector_scope_image_as_payload();
+    return main_view_model::get_graph_image_as_payload();
 }
 
 #[tauri::command]

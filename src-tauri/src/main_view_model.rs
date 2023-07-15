@@ -8,6 +8,7 @@ use base64::{
     Engine as _,
 };
 use once_cell::sync::Lazy;
+use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::sync::OnceLock;
@@ -20,6 +21,9 @@ const EVENT_NAME: &str = "event-vector-scope";
 
 static CAPTURE_AREA_TOP_LEFT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
 static CAPTURE_AREA_BOTTOM_RIGHT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
+static IS_VECTOR_SCOPE_REQUIRED: Lazy<Arc<AtomicBool>> =
+    Lazy::new(|| Arc::new(AtomicBool::new(true)));
+static IS_WAVEFORM_REQUIRED: Lazy<Arc<AtomicBool>> = Lazy::new(|| Arc::new(AtomicBool::new(false)));
 static BASE64_ENGINE: OnceLock<engine::GeneralPurpose> = OnceLock::new();
 
 pub struct VectorScopeWorker {
@@ -42,7 +46,7 @@ impl worker_thread_base::WorkerTrait for VectorScopeWorker {
             if !keep_alive.load(Ordering::Relaxed) {
                 break;
             }
-            let payload = get_vector_scope_image_as_payload();
+            let payload = get_graph_image_as_payload();
             window.emit(EVENT_NAME, payload).unwrap();
             thread::sleep(Duration::from_secs(1));
         });
@@ -73,17 +77,38 @@ pub fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
     *bottom_right_writer = bottom_right;
 }
 
-pub fn get_vector_scope_image_as_payload() -> Payload {
-    let vector_scope_image = match is_capture_area_valid() {
-        true => create_vector_scope_image_from_area(),
-        false => create_vector_scope_image(),
+pub fn get_graph_image_as_payload() -> Payload {
+    let screenshot = match is_capture_area_valid() {
+        true => {
+            let top_left: (i32, i32) = *CAPTURE_AREA_TOP_LEFT.try_read().unwrap();
+            let bottom_right: (i32, i32) = *CAPTURE_AREA_BOTTOM_RIGHT.try_read().unwrap();
+            screenshot_capture::capture_area(top_left, bottom_right)
+        }
+        false => screenshot_capture::capture_entire_sreen(),
     };
 
-    let base64 = BASE64_ENGINE
-        .get_or_init(init_base64_engine)
-        .encode(vector_scope_image);
-    let data_uri = PREFIX_DATA_URI.to_string() + &base64;
-    Payload::new(data_uri)
+    let mut base64_vector_scope: String = String::new();
+    let mut base64_waveform: String = String::new();
+
+    if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed) {
+        let vector_scope_image =
+            graph_plotter::draw_vectorscope(&screenshot).expect("Failed to draw vector scope");
+        base64_vector_scope = BASE64_ENGINE
+            .get_or_init(init_base64_engine)
+            .encode(vector_scope_image);
+        base64_vector_scope = PREFIX_DATA_URI.to_string() + &base64_vector_scope;
+    }
+
+    if IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed) {
+        let waveform_image =
+            graph_plotter::draw_vectorscope(&screenshot).expect("Failed to draw waveform");
+        base64_waveform = BASE64_ENGINE
+            .get_or_init(init_base64_engine)
+            .encode(waveform_image);
+        base64_waveform = PREFIX_DATA_URI.to_string() + &base64_waveform;
+    }
+
+    Payload::new(base64_vector_scope, base64_waveform)
 }
 
 fn is_capture_area_valid() -> bool {
@@ -99,19 +124,6 @@ fn is_capture_area_valid() -> bool {
     } else {
         true
     }
-}
-
-fn create_vector_scope_image() -> Vec<u8> {
-    let screenshot = screenshot_capture::capture_entire_sreen();
-    graph_plotter::draw_vectorscope(screenshot).expect("Failed to draw vector scope")
-}
-
-fn create_vector_scope_image_from_area() -> Vec<u8> {
-    let top_left: (i32, i32) = *CAPTURE_AREA_TOP_LEFT.try_read().unwrap();
-    let bottom_right: (i32, i32) = *CAPTURE_AREA_BOTTOM_RIGHT.try_read().unwrap();
-
-    let screenshot = screenshot_capture::capture_area(top_left, bottom_right);
-    graph_plotter::draw_vectorscope(screenshot).expect("Failed to draw vector scope")
 }
 
 #[cold]
