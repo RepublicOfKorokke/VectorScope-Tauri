@@ -60,13 +60,17 @@ impl worker_thread_base::WorkerTrait for ImageProcessThread {
                     .emit_to(
                         super::WINDOW_LABEL_VECTOR_SCOPE,
                         EVENT_NAME_VECTOR_SCOPE,
-                        &payload,
+                        &payload.base64_vector_scope,
                     )
                     .unwrap();
             }
             if !payload.base64_waveform.is_empty() {
                 app_handle
-                    .emit_to(super::WINDOW_LABEL_WAVEFORM, EVENT_NAME_WAVEFORM, &payload)
+                    .emit_to(
+                        super::WINDOW_LABEL_WAVEFORM,
+                        EVENT_NAME_WAVEFORM,
+                        &payload.base64_waveform,
+                    )
                     .unwrap();
             }
             thread::sleep(Duration::from_secs(1));

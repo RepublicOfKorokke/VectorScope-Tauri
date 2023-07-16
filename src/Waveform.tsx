@@ -52,8 +52,8 @@ export function Waveform() {
   async function registerGlobalShortcutKey() {
     register(GLOBAL_SHORTCUT_KEY, () => {
       stopListenWaveformImage();
-      invoke("get_vector_scope_image_as_payload").then((payload: any) => {
-        let dataURI = payload.base64_waveform as string;
+      invoke("get_graph_image_as_payload").then((payload: any) => {
+        let dataURI = payload as string;
         if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
         let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
         temporaryImage = objectURL.createObjectURL(imageDataBlob);
@@ -66,7 +66,7 @@ export function Waveform() {
   async function startListenWaveformImage() {
     if (!isListeningEmit) {
       await listen(LISTEN_EVENT_NAME, (event: any) => {
-        let dataURI = event.payload.base64_waveform as string; // event.payload is payload
+        let dataURI = event.payload as string; // event.payload is payload
         if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
         let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
         temporaryImage = objectURL.createObjectURL(imageDataBlob);
