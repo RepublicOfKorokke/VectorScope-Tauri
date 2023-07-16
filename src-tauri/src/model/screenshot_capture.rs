@@ -1,17 +1,17 @@
 use display_info::DisplayInfo;
-use screenshots::Screen;
+use screenshots::{Image, Screen};
 
 #[inline(always)]
-pub fn capture_entire_sreen() -> Vec<u8> {
+pub fn capture_entire_sreen() -> Image {
     let display_info = DisplayInfo::from_point(0, 0).unwrap();
     let screen = Screen::new(&display_info);
 
     let image = screen.capture().unwrap();
-    return image.rgba().clone();
+    return image;
 }
 
 #[inline(always)]
-pub fn capture_area(area_top_left: (i32, i32), area_bottom_right: (i32, i32)) -> Vec<u8> {
+pub fn capture_area(area_top_left: (i32, i32), area_bottom_right: (i32, i32)) -> Image {
     let display_info = DisplayInfo::from_point(0, 0).unwrap();
     let screen = Screen::new(&display_info);
 
@@ -20,5 +20,5 @@ pub fn capture_area(area_top_left: (i32, i32), area_bottom_right: (i32, i32)) ->
     let image = screen
         .capture_area(area_top_left.0, area_top_left.1, width, height)
         .unwrap();
-    return image.rgba().clone();
+    return image;
 }

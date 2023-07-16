@@ -137,7 +137,7 @@ pub fn get_graph_image_as_payload() -> Payload {
 
     if IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed) {
         let waveform_image =
-            graph_plotter::draw_vectorscope(&screenshot).expect("Failed to draw waveform");
+            graph_plotter::draw_waveform(&screenshot).expect("Failed to draw waveform");
         base64_waveform = BASE64_ENGINE
             .get_or_init(init_base64_engine)
             .encode(waveform_image);
