@@ -127,7 +127,7 @@ pub fn get_graph_image_as_payload() -> Payload {
 
     if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed) {
         let vector_scope_image =
-            graph_plotter::draw_vectorscope(&screenshot).expect("Failed to draw vector scope");
+            graph_plotter::draw_vector_scope(&screenshot).expect("Failed to draw vector scope");
         base64_vector_scope = BASE64_ENGINE
             .get_or_init(init_base64_engine)
             .encode(vector_scope_image);

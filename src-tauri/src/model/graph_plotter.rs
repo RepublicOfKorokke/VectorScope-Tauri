@@ -32,7 +32,7 @@ fn init_line_color() -> plotters_backend::BackendColor {
 }
 
 #[inline(always)]
-pub fn draw_vectorscope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let image_vec = image.rgba();
     let mut graph = vec![16; *VECTOR_SCOPE_BUFFER_SIZE.get_or_init(init_vector_scope_buffer_size)];
     {
