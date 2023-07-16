@@ -9,6 +9,7 @@ use base64::{
     Engine as _,
 };
 use once_cell::sync::Lazy;
+use screenshots::Image;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
@@ -126,24 +127,32 @@ pub fn get_graph_image_as_payload() -> Payload {
     let mut base64_waveform: String = String::new();
 
     if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed) {
-        let vector_scope_image =
-            graph_plotter::draw_vector_scope(&screenshot).expect("Failed to draw vector scope");
-        base64_vector_scope = BASE64_ENGINE
-            .get_or_init(init_base64_engine)
-            .encode(vector_scope_image);
-        base64_vector_scope = PREFIX_DATA_URI.to_string() + &base64_vector_scope;
+        base64_vector_scope = get_vector_scope_image_as_base64(&screenshot);
     }
 
     if IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed) {
-        let waveform_image =
-            graph_plotter::draw_waveform(&screenshot).expect("Failed to draw waveform");
-        base64_waveform = BASE64_ENGINE
-            .get_or_init(init_base64_engine)
-            .encode(waveform_image);
-        base64_waveform = PREFIX_DATA_URI.to_string() + &base64_waveform;
+        base64_waveform = get_waveform_image_as_base64(&screenshot);
     }
 
     Payload::new(base64_vector_scope, base64_waveform)
+}
+
+fn get_vector_scope_image_as_base64(screenshot: &Image) -> String {
+    let vector_scope_image =
+        graph_plotter::draw_vector_scope(&screenshot).expect("Failed to draw vector scope");
+    let base64_vector_scope = BASE64_ENGINE
+        .get_or_init(init_base64_engine)
+        .encode(vector_scope_image);
+    PREFIX_DATA_URI.to_string() + &base64_vector_scope
+}
+
+fn get_waveform_image_as_base64(screenshot: &Image) -> String {
+    let waveform_image =
+        graph_plotter::draw_waveform(&screenshot).expect("Failed to draw waveform");
+    let base64_waveform = BASE64_ENGINE
+        .get_or_init(init_base64_engine)
+        .encode(waveform_image);
+    PREFIX_DATA_URI.to_string() + &base64_waveform
 }
 
 fn is_capture_area_valid() -> bool {
