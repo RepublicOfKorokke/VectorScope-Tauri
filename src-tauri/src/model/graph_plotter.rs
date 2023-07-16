@@ -70,29 +70,29 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
             )
             .expect("Error on plot pixel");
 
-            // draw center line
-            root.draw_line(
-                (0, VECTOR_SCOPE_CENTER.1),
-                (
-                    VECTOR_SCOPE_WIDHT.try_into().unwrap(),
-                    VECTOR_SCOPE_CENTER.1,
-                ),
-                COLOR_LINE.get_or_init(init_line_color),
-            )
-            .expect("Error on draw line");
-
-            root.draw_line(
-                (VECTOR_SCOPE_CENTER.0, 0),
-                (
-                    VECTOR_SCOPE_CENTER.0,
-                    VECTOR_SCOPE_HEIGHT.try_into().unwrap(),
-                ),
-                COLOR_LINE.get_or_init(init_line_color),
-            )
-            .expect("Error on draw line");
-
             index = index + (4 * ANALYZE_SKIP_RATIO);
         }
+
+        // draw center line
+        root.draw_line(
+            (0, VECTOR_SCOPE_CENTER.1),
+            (
+                VECTOR_SCOPE_WIDHT.try_into().unwrap(),
+                VECTOR_SCOPE_CENTER.1,
+            ),
+            COLOR_LINE.get_or_init(init_line_color),
+        )
+        .expect("Error on draw line");
+        root.draw_line(
+            (VECTOR_SCOPE_CENTER.0, 0),
+            (
+                VECTOR_SCOPE_CENTER.0,
+                VECTOR_SCOPE_HEIGHT.try_into().unwrap(),
+            ),
+            COLOR_LINE.get_or_init(init_line_color),
+        )
+        .expect("Error on draw line");
+
         root.present()?;
     }
 
