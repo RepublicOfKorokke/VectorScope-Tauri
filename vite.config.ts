@@ -27,6 +27,7 @@ export default defineConfig(async () => ({
     rollupOptions: {
       input: {
         vector_scope: resolve(__dirname, "index.html"),
+        waveform: resolve(__dirname, "waveform.html"),
         capture_area_setting: resolve(
           __dirname,
           "capture_area_setting_window.html"

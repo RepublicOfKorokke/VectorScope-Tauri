@@ -13,7 +13,7 @@ pub trait WorkerTrait {
 impl Worker {
     pub fn new() -> Self {
         Self {
-            keep_alive: Arc::new(AtomicBool::new(true)),
+            keep_alive: Arc::new(AtomicBool::new(false)),
         }
     }
 }

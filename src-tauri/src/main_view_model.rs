@@ -64,7 +64,6 @@ impl worker_thread_base::WorkerTrait for ImageProcessThread {
                     .unwrap();
             }
             if !payload.base64_waveform.is_empty() {
-                println!("waveform_image is empty");
                 app_handle
                     .emit_to(super::WINDOW_LABEL_WAVEFORM, EVENT_NAME_WAVEFORM, &payload)
                     .unwrap();
@@ -166,11 +165,19 @@ fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
     if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed)
         || IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed)
     {
-        println!("start thread");
-        THREAD_IMAGE_PROCESS
+        if !THREAD_IMAGE_PROCESS
             .try_read()
             .expect("Failed to read thread")
-            .run(app_handle)
+            .worker_thread
+            .keep_alive
+            .load(Ordering::Relaxed)
+        {
+            println!("start thread");
+            THREAD_IMAGE_PROCESS
+                .try_read()
+                .expect("Failed to read thread")
+                .run(app_handle)
+        }
     } else {
         println!("stop thread");
         THREAD_IMAGE_PROCESS

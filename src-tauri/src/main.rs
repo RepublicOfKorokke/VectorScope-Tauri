@@ -16,6 +16,7 @@ const WINDOW_LABEL_CAPTURE_AREA_SETTING: &str = "window_capture_area_setting";
 
 const TRAY_QUIT: &str = "QUIT";
 const TRAY_VECTOR_SCOPE: &str = "VECTOR_SCOPE";
+const TRAY_WAVEFORM: &str = "WAVEFORM";
 const TRAY_CAPTURE_AREA_SETTING: &str = "CAPTURE_AREA_SETTING";
 
 #[tauri::command]
@@ -49,6 +50,26 @@ fn create_vector_scope_window(app_handle: tauri::AppHandle) {
 }
 
 #[tauri::command]
+fn create_waveform_window(app_handle: tauri::AppHandle) {
+    let _vector_scope_window = match tauri::WindowBuilder::new(
+        &app_handle,
+        WINDOW_LABEL_WAVEFORM,
+        tauri::WindowUrl::App("waveform.html".into()),
+    )
+    .build()
+    {
+        Err(err) => {
+            println!("{err}");
+            let _ = app_handle
+                .get_window(WINDOW_LABEL_WAVEFORM)
+                .expect("waveform window not found")
+                .set_focus();
+        }
+        Ok(_ok) => {}
+    };
+}
+
+#[tauri::command]
 fn create_capture_area_setting_window(app_handle: tauri::AppHandle) {
     let _capture_area_setting_window = match tauri::WindowBuilder::new(
         &app_handle,
@@ -71,12 +92,14 @@ fn create_capture_area_setting_window(app_handle: tauri::AppHandle) {
 fn main() {
     let quit = CustomMenuItem::new(TRAY_QUIT, "Quit");
     let vector_scope = CustomMenuItem::new(TRAY_VECTOR_SCOPE, "Vector Scope");
+    let waveform = CustomMenuItem::new(TRAY_WAVEFORM, "Waveform");
     let capture_area_setting =
         CustomMenuItem::new(TRAY_CAPTURE_AREA_SETTING, "Capture area setting");
     let tray_menu = SystemTrayMenu::new()
         .add_item(quit)
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(vector_scope)
+        .add_item(waveform)
         .add_item(capture_area_setting);
 
     let mut app = tauri::Builder::default()
@@ -110,6 +133,10 @@ fn main() {
                 TRAY_VECTOR_SCOPE => {
                     println!("system tray VECTOR_SCOPE click");
                     create_vector_scope_window(app.app_handle());
+                }
+                TRAY_WAVEFORM => {
+                    println!("system tray WAVEFORM click");
+                    create_waveform_window(app.app_handle());
                 }
                 TRAY_CAPTURE_AREA_SETTING => {
                     println!("system tray CAPTURE_AREA_SETTING click");
