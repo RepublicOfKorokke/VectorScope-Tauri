@@ -3,7 +3,7 @@ import { createSignal } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { appWindow, LogicalSize } from "@tauri-apps/api/window";
-import { register, unregisterAll } from "@tauri-apps/api/globalShortcut";
+import { register, unregister } from "@tauri-apps/api/globalShortcut";
 
 import "./styles.css";
 import "./waveform.css";
@@ -74,6 +74,7 @@ export function Waveform() {
   async function listenCloseWindow() {
     await appWindow.onCloseRequested(async () => {
       setWaveformRequired(false);
+      unregister(GLOBAL_SHORTCUT_KEY);
     });
   }
 
