@@ -65,39 +65,7 @@ impl worker_thread_base::WorkerTrait for ImageProcessThread {
             if !keep_alive.load(Ordering::Relaxed) {
                 break;
             }
-
-            let screenshot = capture_screenshot();
-            let mut base64_vector_scope = String::new();
-            let mut base64_waveform = String::new();
-
-            if IS_VECTOR_SCOPE_WINDOW_OPEN.load(Ordering::Relaxed) {
-                base64_vector_scope = get_vector_scope_image_as_base64(&screenshot);
-            }
-
-            if IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed) {
-                base64_waveform = get_waveform_image_as_base64(&screenshot);
-            }
-
-            if !base64_vector_scope.is_empty() {
-                app_handle
-                    .emit_to(
-                        super::WINDOW_LABEL_VECTOR_SCOPE,
-                        EVENT_NAME_VECTOR_SCOPE,
-                        base64_vector_scope,
-                    )
-                    .unwrap();
-            }
-
-            if !base64_waveform.is_empty() {
-                app_handle
-                    .emit_to(
-                        super::WINDOW_LABEL_WAVEFORM,
-                        EVENT_NAME_WAVEFORM,
-                        base64_waveform,
-                    )
-                    .unwrap();
-            }
-
+            process_and_emit_image(&app_handle);
             thread::sleep(Duration::from_secs(1));
         });
     }
@@ -110,8 +78,6 @@ impl worker_thread_base::WorkerTrait for ImageProcessThread {
 
 #[tauri::command]
 pub fn one_shot_emit(app_handle: tauri::AppHandle) {
-    let screenshot = capture_screenshot();
-
     #[cfg(debug_assertions)]
     println!(
         "IS_VECTOR_SCOPE_WINDOW_OPEN: {}",
@@ -123,8 +89,26 @@ pub fn one_shot_emit(app_handle: tauri::AppHandle) {
         IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed)
     );
 
+    thread::spawn(move || {
+        process_and_emit_image(&app_handle);
+    });
+}
+
+#[inline(always)]
+fn process_and_emit_image(app_handle: &tauri::AppHandle) {
+    let screenshot = capture_screenshot();
+    let mut base64_vector_scope = String::new();
+    let mut base64_waveform = String::new();
+
     if IS_VECTOR_SCOPE_WINDOW_OPEN.load(Ordering::Relaxed) {
-        let base64_vector_scope = get_vector_scope_image_as_base64(&screenshot);
+        base64_vector_scope = get_vector_scope_image_as_base64(&screenshot);
+    }
+
+    if IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed) {
+        base64_waveform = get_waveform_image_as_base64(&screenshot);
+    }
+
+    if !base64_vector_scope.is_empty() {
         app_handle
             .emit_to(
                 super::WINDOW_LABEL_VECTOR_SCOPE,
@@ -134,8 +118,7 @@ pub fn one_shot_emit(app_handle: tauri::AppHandle) {
             .unwrap();
     }
 
-    if IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed) {
-        let base64_waveform = get_waveform_image_as_base64(&screenshot);
+    if !base64_waveform.is_empty() {
         app_handle
             .emit_to(
                 super::WINDOW_LABEL_WAVEFORM,
