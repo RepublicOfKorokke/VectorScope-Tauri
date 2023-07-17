@@ -96,10 +96,12 @@ pub fn one_shot_emit(app_handle: tauri::AppHandle) {
         false => screenshot_capture::capture_entire_sreen(),
     };
 
+    #[cfg(debug_assertions)]
     println!(
         "IS_VECTOR_SCOPE_REQUIRED: {}",
         IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed)
     );
+    #[cfg(debug_assertions)]
     println!(
         "IS_WAVEFORM_REQUIRED: {}",
         IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed)
@@ -167,6 +169,7 @@ pub fn set_is_waveform_required(app_handle: tauri::AppHandle, state: bool) {
 
 #[tauri::command]
 pub fn set_manual_mode(app_handle: tauri::AppHandle, state: bool) {
+    #[cfg(debug_assertions)]
     println!("set_manual_mode: {state}");
     if IS_MANUAL_REFRESH_MODE_ON.load(Ordering::Relaxed) != state {
         IS_MANUAL_REFRESH_MODE_ON.store(state, Ordering::Relaxed);
@@ -244,12 +247,14 @@ fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
             .keep_alive
             .load(Ordering::Relaxed)
         {
+            #[cfg(debug_assertions)]
             println!("Thread: Start");
             THREAD_IMAGE_PROCESS
                 .try_read()
                 .expect("Failed to read thread")
                 .run(app_handle)
         } else {
+            #[cfg(debug_assertions)]
             println!("Thread: Already started");
         }
     } else {
@@ -260,6 +265,7 @@ fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
             .keep_alive
             .load(Ordering::Relaxed)
         {
+            #[cfg(debug_assertions)]
             println!("Thread: Stop");
             THREAD_IMAGE_PROCESS
                 .try_read()

@@ -26,6 +26,7 @@ fn get_mouse_position() -> (i32, i32) {
 
 #[tauri::command]
 fn print_log(text: &str) {
+    #[cfg(debug_assertions)]
     println!("{}", text)
 }
 
@@ -38,6 +39,7 @@ fn create_vector_scope_window(app_handle: tauri::AppHandle) {
     .build()
     {
         Err(err) => {
+            #[cfg(debug_assertions)]
             println!("{err}");
             let _ = app_handle
                 .get_window(WINDOW_LABEL_VECTOR_SCOPE)
@@ -57,6 +59,7 @@ fn create_waveform_window(app_handle: tauri::AppHandle) {
     .build()
     {
         Err(err) => {
+            #[cfg(debug_assertions)]
             println!("{err}");
             let _ = app_handle
                 .get_window(WINDOW_LABEL_WAVEFORM)
@@ -77,6 +80,7 @@ fn create_capture_area_setting_window(app_handle: tauri::AppHandle) {
     .build()
     {
         Err(err) => {
+            #[cfg(debug_assertions)]
             println!("{err}");
             let _ = app_handle
                 .get_window(WINDOW_LABEL_CAPTURE_AREA_SETTING)
@@ -108,6 +112,7 @@ fn main() {
                 size: _,
                 ..
             } => {
+                #[cfg(debug_assertions)]
                 println!("system tray received a left click");
             }
             SystemTrayEvent::RightClick {
@@ -115,6 +120,7 @@ fn main() {
                 size: _,
                 ..
             } => {
+                #[cfg(debug_assertions)]
                 println!("system tray received a right click");
             }
             SystemTrayEvent::DoubleClick {
@@ -122,6 +128,7 @@ fn main() {
                 size: _,
                 ..
             } => {
+                #[cfg(debug_assertions)]
                 println!("system tray received a double click");
             }
             SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
@@ -129,14 +136,17 @@ fn main() {
                     std::process::exit(0);
                 }
                 TRAY_VECTOR_SCOPE => {
+                    #[cfg(debug_assertions)]
                     println!("system tray VECTOR_SCOPE click");
                     create_vector_scope_window(app.app_handle());
                 }
                 TRAY_WAVEFORM => {
+                    #[cfg(debug_assertions)]
                     println!("system tray WAVEFORM click");
                     create_waveform_window(app.app_handle());
                 }
                 TRAY_CAPTURE_AREA_SETTING => {
+                    #[cfg(debug_assertions)]
                     println!("system tray CAPTURE_AREA_SETTING click");
                     create_capture_area_setting_window(app.app_handle());
                 }
