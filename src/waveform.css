@@ -2,7 +2,7 @@
   overflow: auto;
 }
 
-img {
-  -webkit-transform: scaleY(-1);
-  transform: scaleY(-1);
+* {
+  margin: 0;
+  padding: 0;
 }

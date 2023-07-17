@@ -16,6 +16,8 @@ let BASE64_MARKER = ";base64,";
 let temporaryImage: string;
 let objectURL = window.URL || window.webkitURL;
 
+let zoomed: boolean = false;
+
 function convertDataURIToBlob(dataURI: string): Blob {
   // Convert image (in base64) to binary data
   let base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
@@ -35,17 +37,20 @@ function convertDataURIToBlob(dataURI: string): Blob {
 
 export function Waveform() {
   const [image, setImage] = createSignal("");
+  const [width, setWidth] = createSignal("95vw");
+  const [height, setHeight] = createSignal("95vh");
 
   initializeWindow();
   registerGlobalShortcutKey();
   listenCloseWindow();
   window.addEventListener("dblclick", () => setManualModeOn(false));
+  window.addEventListener("click", setImageSize);
 
   async function initializeWindow() {
     appWindow.setTitle("Waveform");
     appWindow.setContentProtected(true);
     appWindow.setAlwaysOnTop(true);
-    appWindow.setSize(new LogicalSize(1000, 255));
+    appWindow.setSize(new LogicalSize(1000, 280));
 
     await listen(LISTEN_EVENT_NAME, (event: any) => {
       let dataURI = event.payload as string; // event.payload is payload
@@ -80,9 +85,28 @@ export function Waveform() {
     invoke("set_manual_mode", { state: state });
   }
 
+  async function setImageSize() {
+    if (zoomed) {
+      setWidth("95vw");
+      setHeight("95vh");
+    } else {
+      setWidth("auto");
+      setHeight("auto");
+    }
+    zoomed = !zoomed;
+  }
+
   return (
     <div>
-      <img src={image()}></img>
+      <img
+        src={image()}
+        style={{
+          width: `${width()}`,
+          height: `${height()}`,
+          "-webkit-transform": `scaleY(-1)`,
+          transform: `scaleY(-1)`,
+        }}
+      ></img>
     </div>
   );
 }
