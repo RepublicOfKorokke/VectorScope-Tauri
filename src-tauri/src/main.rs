@@ -162,7 +162,6 @@ fn main() {
             main_view_model::set_is_vector_scope_window_open,
             main_view_model::set_is_waveform_window_open,
             main_view_model::set_manual_mode,
-            main_view_model::get_graph_image_as_payload,
             main_view_model::one_shot_emit,
         ])
         .build(tauri::generate_context!())

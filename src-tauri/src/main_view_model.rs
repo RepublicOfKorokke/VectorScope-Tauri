@@ -1,5 +1,4 @@
 use crate::graph_plotter;
-use crate::message::payload::Payload;
 use crate::model::worker_thread_base;
 use crate::model::worker_thread_base::WorkerTrait;
 use crate::screenshot_capture;
@@ -66,25 +65,39 @@ impl worker_thread_base::WorkerTrait for ImageProcessThread {
             if !keep_alive.load(Ordering::Relaxed) {
                 break;
             }
-            let payload = get_graph_image_as_payload();
-            if !payload.base64_vector_scope.is_empty() {
+
+            let screenshot = capture_screenshot();
+            let mut base64_vector_scope = String::new();
+            let mut base64_waveform = String::new();
+
+            if IS_VECTOR_SCOPE_WINDOW_OPEN.load(Ordering::Relaxed) {
+                base64_vector_scope = get_vector_scope_image_as_base64(&screenshot);
+            }
+
+            if IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed) {
+                base64_waveform = get_waveform_image_as_base64(&screenshot);
+            }
+
+            if !base64_vector_scope.is_empty() {
                 app_handle
                     .emit_to(
                         super::WINDOW_LABEL_VECTOR_SCOPE,
                         EVENT_NAME_VECTOR_SCOPE,
-                        &payload.base64_vector_scope,
+                        base64_vector_scope,
                     )
                     .unwrap();
             }
-            if !payload.base64_waveform.is_empty() {
+
+            if !base64_waveform.is_empty() {
                 app_handle
                     .emit_to(
                         super::WINDOW_LABEL_WAVEFORM,
                         EVENT_NAME_WAVEFORM,
-                        &payload.base64_waveform,
+                        base64_waveform,
                     )
                     .unwrap();
             }
+
             thread::sleep(Duration::from_secs(1));
         });
     }
@@ -176,23 +189,6 @@ pub fn set_manual_mode(app_handle: tauri::AppHandle, state: bool) {
         IS_MANUAL_REFRESH_MODE_ON.store(state, Ordering::Relaxed);
         check_thread_need_to_be_keep_alive(app_handle);
     }
-}
-
-#[tauri::command]
-pub fn get_graph_image_as_payload() -> Payload {
-    let screenshot = capture_screenshot();
-    let mut base64_vector_scope: String = String::new();
-    let mut base64_waveform: String = String::new();
-
-    if IS_VECTOR_SCOPE_WINDOW_OPEN.load(Ordering::Relaxed) {
-        base64_vector_scope = get_vector_scope_image_as_base64(&screenshot);
-    }
-
-    if IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed) {
-        base64_waveform = get_waveform_image_as_base64(&screenshot);
-    }
-
-    Payload::new(base64_vector_scope, base64_waveform)
 }
 
 fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
