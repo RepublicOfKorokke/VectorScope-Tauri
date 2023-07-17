@@ -11,8 +11,6 @@ import "./reverse_image.css";
 const GLOBAL_SHORTCUT_KEY: string = "CommandOrControl+Shift+V";
 const LISTEN_EVENT_NAME: string = "event-waveform";
 
-let isListeningEmit = false;
-
 // Methods to address the memory leaks problems in Safari
 let BASE64_MARKER = ";base64,";
 let temporaryImage: string;
