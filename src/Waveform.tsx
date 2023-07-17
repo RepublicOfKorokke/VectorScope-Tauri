@@ -6,7 +6,7 @@ import { appWindow, LogicalSize } from "@tauri-apps/api/window";
 import { register, unregisterAll } from "@tauri-apps/api/globalShortcut";
 
 import "./styles.css";
-import "./reverse_image.css";
+import "./waveform.css";
 
 const GLOBAL_SHORTCUT_KEY: string = "CommandOrControl+Shift+V";
 const LISTEN_EVENT_NAME: string = "event-waveform";
