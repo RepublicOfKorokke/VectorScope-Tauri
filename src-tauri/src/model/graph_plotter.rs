@@ -163,21 +163,21 @@ pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error
             index += 4;
         }
 
-        // draw base line
+        // draw 128 line
         root.draw_line(
-            (0, 255),
-            (image_width.try_into().unwrap(), 255),
+            (0, 128),
+            (image_width.try_into().unwrap(), 128),
             COLOR_LINE.get_or_init(init_line_color),
         )
-        .expect("Error on draw line");
+        .expect("Error on draw 128 line");
 
-        // draw limit line
+        // draw half widht line
         root.draw_line(
-            (0, 0),
-            (image_width.try_into().unwrap(), 0),
+            ((image_width / 2).try_into().unwrap(), 0),
+            ((image_width / 2).try_into().unwrap(), 255),
             COLOR_LINE.get_or_init(init_line_color),
         )
-        .expect("Error on draw line");
+        .expect("Error on draw half width line");
 
         root.present()?;
     }
