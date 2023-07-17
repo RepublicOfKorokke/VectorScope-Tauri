@@ -50,7 +50,7 @@ export function Waveform() {
     appWindow.setTitle("Waveform");
     appWindow.setContentProtected(true);
     appWindow.setAlwaysOnTop(true);
-    appWindow.setSize(new LogicalSize(1000, 280));
+    appWindow.setSize(new LogicalSize(500, 280));
 
     await listen(LISTEN_EVENT_NAME, (event: any) => {
       let dataURI = event.payload as string; // event.payload is payload
