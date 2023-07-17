@@ -24,6 +24,10 @@ const EVENT_NAME_VECTOR_SCOPE: &str = "event-vector-scope";
 const EVENT_NAME_WAVEFORM: &str = "event-waveform";
 
 static BASE64_ENGINE: OnceLock<engine::GeneralPurpose> = OnceLock::new();
+#[cold]
+fn init_base64_engine() -> engine::GeneralPurpose {
+    engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD)
+}
 
 static CAPTURE_AREA_TOP_LEFT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
 static CAPTURE_AREA_BOTTOM_RIGHT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
@@ -36,10 +40,14 @@ static IS_MANUAL_REFRESH_MODE_ON: Lazy<Arc<AtomicBool>> =
     Lazy::new(|| Arc::new(AtomicBool::new(false)));
 
 static THREAD_IMAGE_PROCESS: Lazy<RwLock<ImageProcessThread>> =
-    Lazy::new(|| RwLock::new(create_vector_scope_thread()));
+    Lazy::new(|| RwLock::new(create_image_process_thread()));
 
 pub struct ImageProcessThread {
     pub worker_thread: worker_thread_base::Worker,
+}
+#[cold]
+fn create_image_process_thread() -> ImageProcessThread {
+    ImageProcessThread::new()
 }
 
 impl ImageProcessThread {
@@ -89,14 +97,7 @@ impl worker_thread_base::WorkerTrait for ImageProcessThread {
 
 #[tauri::command]
 pub fn one_shot_emit(app_handle: tauri::AppHandle) {
-    let screenshot = match is_capture_area_valid() {
-        true => {
-            let top_left: (i32, i32) = *CAPTURE_AREA_TOP_LEFT.try_read().unwrap();
-            let bottom_right: (i32, i32) = *CAPTURE_AREA_BOTTOM_RIGHT.try_read().unwrap();
-            screenshot_capture::capture_area(top_left, bottom_right)
-        }
-        false => screenshot_capture::capture_entire_sreen(),
-    };
+    let screenshot = capture_screenshot();
 
     #[cfg(debug_assertions)]
     println!(
@@ -130,11 +131,6 @@ pub fn one_shot_emit(app_handle: tauri::AppHandle) {
             )
             .unwrap();
     }
-}
-
-#[cold]
-pub fn create_vector_scope_thread() -> ImageProcessThread {
-    ImageProcessThread::new()
 }
 
 #[tauri::command]
@@ -181,15 +177,7 @@ pub fn set_manual_mode(app_handle: tauri::AppHandle, state: bool) {
 
 #[tauri::command]
 pub fn get_graph_image_as_payload() -> Payload {
-    let screenshot = match is_capture_area_valid() {
-        true => {
-            let top_left: (i32, i32) = *CAPTURE_AREA_TOP_LEFT.try_read().unwrap();
-            let bottom_right: (i32, i32) = *CAPTURE_AREA_BOTTOM_RIGHT.try_read().unwrap();
-            screenshot_capture::capture_area(top_left, bottom_right)
-        }
-        false => screenshot_capture::capture_entire_sreen(),
-    };
-
+    let screenshot = capture_screenshot();
     let mut base64_vector_scope: String = String::new();
     let mut base64_waveform: String = String::new();
 
@@ -202,39 +190,6 @@ pub fn get_graph_image_as_payload() -> Payload {
     }
 
     Payload::new(base64_vector_scope, base64_waveform)
-}
-
-fn get_vector_scope_image_as_base64(screenshot: &Image) -> String {
-    let vector_scope_image =
-        graph_plotter::draw_vector_scope(&screenshot).expect("Failed to draw vector scope");
-    let base64_vector_scope = BASE64_ENGINE
-        .get_or_init(init_base64_engine)
-        .encode(vector_scope_image);
-    PREFIX_DATA_URI.to_string() + &base64_vector_scope
-}
-
-fn get_waveform_image_as_base64(screenshot: &Image) -> String {
-    let waveform_image =
-        graph_plotter::draw_waveform(&screenshot).expect("Failed to draw waveform");
-    let base64_waveform = BASE64_ENGINE
-        .get_or_init(init_base64_engine)
-        .encode(waveform_image);
-    PREFIX_DATA_URI.to_string() + &base64_waveform
-}
-
-fn is_capture_area_valid() -> bool {
-    let top_left = CAPTURE_AREA_TOP_LEFT.try_read();
-    let bottom_right = CAPTURE_AREA_BOTTOM_RIGHT.try_read();
-
-    if top_left.is_err() || bottom_right.is_err() {
-        return false;
-    }
-
-    if *top_left.unwrap() == *bottom_right.unwrap() {
-        false
-    } else {
-        true
-    }
 }
 
 fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
@@ -277,7 +232,46 @@ fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
     }
 }
 
-#[cold]
-fn init_base64_engine() -> engine::GeneralPurpose {
-    engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD)
+fn is_capture_area_valid() -> bool {
+    let top_left = CAPTURE_AREA_TOP_LEFT.try_read();
+    let bottom_right = CAPTURE_AREA_BOTTOM_RIGHT.try_read();
+
+    if top_left.is_err() || bottom_right.is_err() {
+        return false;
+    }
+
+    if *top_left.unwrap() == *bottom_right.unwrap() {
+        false
+    } else {
+        true
+    }
+}
+
+fn get_vector_scope_image_as_base64(screenshot: &Image) -> String {
+    let vector_scope_image =
+        graph_plotter::draw_vector_scope(&screenshot).expect("Failed to draw vector scope");
+    let base64_vector_scope = BASE64_ENGINE
+        .get_or_init(init_base64_engine)
+        .encode(vector_scope_image);
+    PREFIX_DATA_URI.to_string() + &base64_vector_scope
+}
+
+fn get_waveform_image_as_base64(screenshot: &Image) -> String {
+    let waveform_image =
+        graph_plotter::draw_waveform(&screenshot).expect("Failed to draw waveform");
+    let base64_waveform = BASE64_ENGINE
+        .get_or_init(init_base64_engine)
+        .encode(waveform_image);
+    PREFIX_DATA_URI.to_string() + &base64_waveform
+}
+
+fn capture_screenshot() -> Image {
+    match is_capture_area_valid() {
+        true => {
+            let top_left: (i32, i32) = *CAPTURE_AREA_TOP_LEFT.try_read().unwrap();
+            let bottom_right: (i32, i32) = *CAPTURE_AREA_BOTTOM_RIGHT.try_read().unwrap();
+            screenshot_capture::capture_area(top_left, bottom_right)
+        }
+        false => screenshot_capture::capture_entire_sreen(),
+    }
 }
