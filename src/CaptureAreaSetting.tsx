@@ -42,7 +42,7 @@ export function CaptureAreaSetting() {
   let longClickTimeout: NodeJS.Timeout;
   window.addEventListener("mousedown", (event) => {
     longClickTimeout = setTimeout(function () {
-      invoke("init_capture_area");
+      invoke("initialize_capture_area");
       setFirstLineText("Capture Area has removed");
       setSecondLineText("");
     }, 1000);
