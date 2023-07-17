@@ -62,14 +62,7 @@ export function Waveform() {
   async function registerGlobalShortcutKey() {
     register(GLOBAL_SHORTCUT_KEY, () => {
       setManualModeOn(true);
-      invoke("one_shot_emit").then((payload: any) => {
-        let dataURI = payload as string;
-        if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
-        let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
-        temporaryImage = objectURL.createObjectURL(imageDataBlob);
-        setImage(temporaryImage);
-        dataURI = "";
-      });
+      invoke("one_shot_emit");
     });
   }
 
