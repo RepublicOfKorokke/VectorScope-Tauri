@@ -58,6 +58,7 @@ export function Waveform() {
       dataURI = "";
     });
     setWaveformRequired(true);
+    setManualModeOn(false);
   }
 
   async function registerGlobalShortcutKey() {

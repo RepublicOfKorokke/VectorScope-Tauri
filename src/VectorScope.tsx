@@ -55,6 +55,7 @@ export function Capture() {
       dataURI = "";
     });
     setVectorScopeRequired(true);
+    setManualModeOn(false);
   }
 
   async function registerGlobalShortcutKey() {
