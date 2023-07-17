@@ -10,8 +10,6 @@ import "./styles.css";
 const GLOBAL_SHORTCUT_KEY: string = "CommandOrControl+Shift+R";
 const LISTEN_EVENT_NAME: string = "event-vector-scope";
 
-let isListeningEmit = false;
-
 // Methods to address the memory leaks problems in Safari
 let BASE64_MARKER = ";base64,";
 let temporaryImage: string;
@@ -37,22 +35,32 @@ function convertDataURIToBlob(dataURI: string): Blob {
 export function Capture() {
   const [image, setImage] = createSignal("");
 
-  appWindow.setTitle("Vector Scope");
-  appWindow.setContentProtected(true);
-  appWindow.setAlwaysOnTop(true);
-  appWindow.setSize(new LogicalSize(300, 320));
-
+  initializeWindow();
   registerGlobalShortcutKey();
-
-  startListenCaptureScreen();
   listenCloseWindow();
+  window.addEventListener("dblclick", () => setManualModeOn(false));
 
-  window.addEventListener("dblclick", startListenCaptureScreen);
+  async function initializeWindow() {
+    appWindow.setTitle("Vector Scope");
+    appWindow.setContentProtected(true);
+    appWindow.setAlwaysOnTop(true);
+    appWindow.setSize(new LogicalSize(300, 320));
+
+    await listen(LISTEN_EVENT_NAME, (event: any) => {
+      let dataURI = event.payload as string; // event.payload is payload
+      if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
+      let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
+      temporaryImage = objectURL.createObjectURL(imageDataBlob);
+      setImage(temporaryImage);
+      dataURI = "";
+    });
+    setVectorScopeRequired(true);
+  }
 
   async function registerGlobalShortcutKey() {
     register(GLOBAL_SHORTCUT_KEY, () => {
-      stopListenCaptureScreen();
-      invoke("get_vector_scope_image_as_payload").then((payload: any) => {
+      setManualModeOn(true);
+      invoke("one_shot_emit").then((payload: any) => {
         let dataURI = payload as string;
         if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
         let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
@@ -63,34 +71,19 @@ export function Capture() {
     });
   }
 
-  async function startListenCaptureScreen() {
-    if (!isListeningEmit) {
-      await listen(LISTEN_EVENT_NAME, (event: any) => {
-        let dataURI = event.payload as string; // event.payload is payload
-        if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
-        let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
-        temporaryImage = objectURL.createObjectURL(imageDataBlob);
-        setImage(temporaryImage);
-        dataURI = "";
-      });
-      invoke("set_is_vector_scope_required", { state: true });
-      isListeningEmit = true;
-    }
-  }
-
-  async function stopListenCaptureScreen() {
-    if (isListeningEmit) {
-      invoke("stop_emit_vector_scope_image_as_payload");
-      isListeningEmit = false;
-    }
-  }
-
   async function listenCloseWindow() {
     await appWindow.onCloseRequested(async () => {
-      invoke("stop_emit_vector_scope_image_as_payload");
-      invoke("set_is_vector_scope_required", { state: false });
+      setVectorScopeRequired(false);
       unregisterAll();
     });
+  }
+
+  async function setVectorScopeRequired(state: boolean) {
+    invoke("set_is_vector_scope_required", { state: state });
+  }
+
+  async function setManualModeOn(state: boolean) {
+    invoke("set_manual_mode", { state: state });
   }
 
   return (

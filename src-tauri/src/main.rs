@@ -10,8 +10,8 @@ use crate::model::screenshot_capture;
 use tauri::Manager;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
-pub const WINDOW_LABEL_VECTOR_SCOPE: &str = "window_vector_scope";
-pub const WINDOW_LABEL_WAVEFORM: &str = "window_waveform";
+const WINDOW_LABEL_VECTOR_SCOPE: &str = "window_vector_scope";
+const WINDOW_LABEL_WAVEFORM: &str = "window_waveform";
 const WINDOW_LABEL_CAPTURE_AREA_SETTING: &str = "window_capture_area_setting";
 
 const TRAY_QUIT: &str = "QUIT";
@@ -29,7 +29,6 @@ fn print_log(text: &str) {
     println!("{}", text)
 }
 
-#[tauri::command]
 fn create_vector_scope_window(app_handle: tauri::AppHandle) {
     let _vector_scope_window = match tauri::WindowBuilder::new(
         &app_handle,
@@ -49,7 +48,6 @@ fn create_vector_scope_window(app_handle: tauri::AppHandle) {
     };
 }
 
-#[tauri::command]
 fn create_waveform_window(app_handle: tauri::AppHandle) {
     let _vector_scope_window = match tauri::WindowBuilder::new(
         &app_handle,
@@ -149,12 +147,13 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             print_log,
             get_mouse_position,
-            create_vector_scope_window,
             main_view_model::initialize_capture_area,
             main_view_model::set_capture_area,
             main_view_model::set_is_vector_scope_required,
             main_view_model::set_is_waveform_required,
+            main_view_model::set_manual_mode,
             main_view_model::get_graph_image_as_payload,
+            main_view_model::one_shot_emit,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

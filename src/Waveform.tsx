@@ -8,6 +8,7 @@ import { register, unregisterAll } from "@tauri-apps/api/globalShortcut";
 import "./styles.css";
 import "./reverse_image.css";
 
+const GLOBAL_SHORTCUT_KEY: string = "CommandOrControl+Shift+V";
 const LISTEN_EVENT_NAME: string = "event-waveform";
 
 let isListeningEmit = false;
@@ -37,22 +38,32 @@ function convertDataURIToBlob(dataURI: string): Blob {
 export function Waveform() {
   const [image, setImage] = createSignal("");
 
-  appWindow.setTitle("Waveform");
-  appWindow.setContentProtected(true);
-  appWindow.setAlwaysOnTop(true);
-  appWindow.setSize(new LogicalSize(1000, 255));
-
+  initializeWindow();
   registerGlobalShortcutKey();
-
-  startListenWaveformImage();
   listenCloseWindow();
+  window.addEventListener("dblclick", () => setManualModeOn(false));
 
-  window.addEventListener("dblclick", startListenWaveformImage);
+  async function initializeWindow() {
+    appWindow.setTitle("Waveform");
+    appWindow.setContentProtected(true);
+    appWindow.setAlwaysOnTop(true);
+    appWindow.setSize(new LogicalSize(1000, 255));
+
+    await listen(LISTEN_EVENT_NAME, (event: any) => {
+      let dataURI = event.payload as string; // event.payload is payload
+      if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
+      let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
+      temporaryImage = objectURL.createObjectURL(imageDataBlob);
+      setImage(temporaryImage);
+      dataURI = "";
+    });
+    setWaveformRequired(true);
+  }
 
   async function registerGlobalShortcutKey() {
     register(GLOBAL_SHORTCUT_KEY, () => {
-      stopListenWaveformImage();
-      invoke("get_graph_image_as_payload").then((payload: any) => {
+      setManualModeOn(true);
+      invoke("one_shot_emit").then((payload: any) => {
         let dataURI = payload as string;
         if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
         let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
@@ -63,33 +74,19 @@ export function Waveform() {
     });
   }
 
-  async function startListenWaveformImage() {
-    if (!isListeningEmit) {
-      await listen(LISTEN_EVENT_NAME, (event: any) => {
-        let dataURI = event.payload as string; // event.payload is payload
-        if (temporaryImage) objectURL.revokeObjectURL(temporaryImage);
-        let imageDataBlob: Blob = convertDataURIToBlob(dataURI);
-        temporaryImage = objectURL.createObjectURL(imageDataBlob);
-        setImage(temporaryImage);
-        dataURI = "";
-      });
-      invoke("set_is_waveform_required", { state: true });
-      isListeningEmit = true;
-    }
-  }
-
-  async function stopListenWaveformImage() {
-    if (isListeningEmit) {
-      invoke("set_is_waveform_required", { state: false });
-      isListeningEmit = false;
-    }
-  }
-
   async function listenCloseWindow() {
     await appWindow.onCloseRequested(async () => {
-      invoke("set_is_waveform_required", { state: false });
+      setWaveformRequired(false);
       unregisterAll();
     });
+  }
+
+  async function setWaveformRequired(state: boolean) {
+    invoke("set_is_waveform_required", { state: state });
+  }
+
+  async function setManualModeOn(state: boolean) {
+    invoke("set_manual_mode", { state: state });
   }
 
   return (

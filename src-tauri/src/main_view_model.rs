@@ -28,8 +28,10 @@ static BASE64_ENGINE: OnceLock<engine::GeneralPurpose> = OnceLock::new();
 static CAPTURE_AREA_TOP_LEFT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
 static CAPTURE_AREA_BOTTOM_RIGHT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
 static IS_VECTOR_SCOPE_REQUIRED: Lazy<Arc<AtomicBool>> =
-    Lazy::new(|| Arc::new(AtomicBool::new(true)));
+    Lazy::new(|| Arc::new(AtomicBool::new(false)));
 static IS_WAVEFORM_REQUIRED: Lazy<Arc<AtomicBool>> = Lazy::new(|| Arc::new(AtomicBool::new(false)));
+static IS_MANUAL_REFRESH_MODE_ON: Lazy<Arc<AtomicBool>> =
+    Lazy::new(|| Arc::new(AtomicBool::new(false)));
 
 static THREAD_IMAGE_PROCESS: Lazy<RwLock<ImageProcessThread>> =
     Lazy::new(|| RwLock::new(create_vector_scope_thread()));
@@ -83,6 +85,49 @@ impl worker_thread_base::WorkerTrait for ImageProcessThread {
     }
 }
 
+#[tauri::command]
+pub fn one_shot_emit(app_handle: tauri::AppHandle) {
+    let screenshot = match is_capture_area_valid() {
+        true => {
+            let top_left: (i32, i32) = *CAPTURE_AREA_TOP_LEFT.try_read().unwrap();
+            let bottom_right: (i32, i32) = *CAPTURE_AREA_BOTTOM_RIGHT.try_read().unwrap();
+            screenshot_capture::capture_area(top_left, bottom_right)
+        }
+        false => screenshot_capture::capture_entire_sreen(),
+    };
+
+    println!(
+        "IS_VECTOR_SCOPE_REQUIRED: {}",
+        IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed)
+    );
+    println!(
+        "IS_WAVEFORM_REQUIRED: {}",
+        IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed)
+    );
+
+    if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed) {
+        let base64_vector_scope = get_vector_scope_image_as_base64(&screenshot);
+        app_handle
+            .emit_to(
+                super::WINDOW_LABEL_VECTOR_SCOPE,
+                EVENT_NAME_VECTOR_SCOPE,
+                base64_vector_scope,
+            )
+            .unwrap();
+    }
+
+    if IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed) {
+        let base64_waveform = get_waveform_image_as_base64(&screenshot);
+        app_handle
+            .emit_to(
+                super::WINDOW_LABEL_WAVEFORM,
+                EVENT_NAME_WAVEFORM,
+                base64_waveform,
+            )
+            .unwrap();
+    }
+}
+
 #[cold]
 pub fn create_vector_scope_thread() -> ImageProcessThread {
     ImageProcessThread::new()
@@ -106,14 +151,27 @@ pub fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
 
 #[tauri::command]
 pub fn set_is_vector_scope_required(app_handle: tauri::AppHandle, state: bool) {
-    IS_VECTOR_SCOPE_REQUIRED.store(state, Ordering::Relaxed);
-    check_thread_need_to_be_keep_alive(app_handle);
+    if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed) != state {
+        IS_VECTOR_SCOPE_REQUIRED.store(state, Ordering::Relaxed);
+        check_thread_need_to_be_keep_alive(app_handle);
+    }
 }
 
 #[tauri::command]
 pub fn set_is_waveform_required(app_handle: tauri::AppHandle, state: bool) {
-    IS_WAVEFORM_REQUIRED.store(state, Ordering::Relaxed);
-    check_thread_need_to_be_keep_alive(app_handle);
+    if IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed) != state {
+        IS_WAVEFORM_REQUIRED.store(state, Ordering::Relaxed);
+        check_thread_need_to_be_keep_alive(app_handle);
+    }
+}
+
+#[tauri::command]
+pub fn set_manual_mode(app_handle: tauri::AppHandle, state: bool) {
+    println!("set_manual_mode: {state}");
+    if IS_MANUAL_REFRESH_MODE_ON.load(Ordering::Relaxed) != state {
+        IS_MANUAL_REFRESH_MODE_ON.store(state, Ordering::Relaxed);
+        check_thread_need_to_be_keep_alive(app_handle);
+    }
 }
 
 #[tauri::command]
@@ -175,8 +233,9 @@ fn is_capture_area_valid() -> bool {
 }
 
 fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
-    if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed)
-        || IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed)
+    if (IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed)
+        || IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed))
+        && !IS_MANUAL_REFRESH_MODE_ON.load(Ordering::Relaxed)
     {
         if !THREAD_IMAGE_PROCESS
             .try_read()
@@ -185,18 +244,28 @@ fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
             .keep_alive
             .load(Ordering::Relaxed)
         {
-            println!("start thread");
+            println!("Thread: Start");
             THREAD_IMAGE_PROCESS
                 .try_read()
                 .expect("Failed to read thread")
                 .run(app_handle)
+        } else {
+            println!("Thread: Already started");
         }
     } else {
-        println!("stop thread");
-        THREAD_IMAGE_PROCESS
+        if THREAD_IMAGE_PROCESS
             .try_read()
             .expect("Failed to read thread")
-            .stop()
+            .worker_thread
+            .keep_alive
+            .load(Ordering::Relaxed)
+        {
+            println!("Thread: Stop");
+            THREAD_IMAGE_PROCESS
+                .try_read()
+                .expect("Failed to read thread")
+                .stop()
+        }
     }
 }
 
