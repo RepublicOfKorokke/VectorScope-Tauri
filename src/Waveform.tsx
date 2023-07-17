@@ -69,7 +69,6 @@ export function Waveform() {
   async function listenCloseWindow() {
     await appWindow.onCloseRequested(async () => {
       setWaveformRequired(false);
-      unregisterAll();
     });
   }
 

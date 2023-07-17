@@ -68,7 +68,6 @@ export function Capture() {
   async function listenCloseWindow() {
     await appWindow.onCloseRequested(async () => {
       setVectorScopeRequired(false);
-      unregisterAll();
     });
   }
 
