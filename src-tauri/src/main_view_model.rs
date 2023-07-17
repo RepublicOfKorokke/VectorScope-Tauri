@@ -135,6 +135,7 @@ pub fn one_shot_emit(app_handle: tauri::AppHandle) {
 
 #[tauri::command]
 pub fn initialize_capture_area() {
+    println!("initialize_capture_area");
     let mut top_left_writer = CAPTURE_AREA_TOP_LEFT.write().unwrap();
     *top_left_writer = (0, 0);
     let mut bottom_right_writer = CAPTURE_AREA_BOTTOM_RIGHT.write().unwrap();
@@ -143,6 +144,8 @@ pub fn initialize_capture_area() {
 
 #[tauri::command]
 pub fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
+    #[cfg(debug_assertions)]
+    println!("set_capture_area");
     let mut top_left_writer = CAPTURE_AREA_TOP_LEFT.write().unwrap();
     *top_left_writer = top_left;
     let mut bottom_right_writer = CAPTURE_AREA_BOTTOM_RIGHT.write().unwrap();
