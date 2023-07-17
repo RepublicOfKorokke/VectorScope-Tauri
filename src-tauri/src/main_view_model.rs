@@ -27,9 +27,11 @@ static BASE64_ENGINE: OnceLock<engine::GeneralPurpose> = OnceLock::new();
 
 static CAPTURE_AREA_TOP_LEFT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
 static CAPTURE_AREA_BOTTOM_RIGHT: Lazy<RwLock<(i32, i32)>> = Lazy::new(|| RwLock::new((0, 0)));
-static IS_VECTOR_SCOPE_REQUIRED: Lazy<Arc<AtomicBool>> =
+
+static IS_VECTOR_SCOPE_WINDOW_OPEN: Lazy<Arc<AtomicBool>> =
     Lazy::new(|| Arc::new(AtomicBool::new(false)));
-static IS_WAVEFORM_REQUIRED: Lazy<Arc<AtomicBool>> = Lazy::new(|| Arc::new(AtomicBool::new(false)));
+static IS_WAVEFORM_WINDOW_OPEN: Lazy<Arc<AtomicBool>> =
+    Lazy::new(|| Arc::new(AtomicBool::new(false)));
 static IS_MANUAL_REFRESH_MODE_ON: Lazy<Arc<AtomicBool>> =
     Lazy::new(|| Arc::new(AtomicBool::new(false)));
 
@@ -98,16 +100,16 @@ pub fn one_shot_emit(app_handle: tauri::AppHandle) {
 
     #[cfg(debug_assertions)]
     println!(
-        "IS_VECTOR_SCOPE_REQUIRED: {}",
-        IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed)
+        "IS_VECTOR_SCOPE_WINDOW_OPEN: {}",
+        IS_VECTOR_SCOPE_WINDOW_OPEN.load(Ordering::Relaxed)
     );
     #[cfg(debug_assertions)]
     println!(
-        "IS_WAVEFORM_REQUIRED: {}",
-        IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed)
+        "IS_WAVEFORM_WINDOW_OPEN: {}",
+        IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed)
     );
 
-    if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed) {
+    if IS_VECTOR_SCOPE_WINDOW_OPEN.load(Ordering::Relaxed) {
         let base64_vector_scope = get_vector_scope_image_as_base64(&screenshot);
         app_handle
             .emit_to(
@@ -118,7 +120,7 @@ pub fn one_shot_emit(app_handle: tauri::AppHandle) {
             .unwrap();
     }
 
-    if IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed) {
+    if IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed) {
         let base64_waveform = get_waveform_image_as_base64(&screenshot);
         app_handle
             .emit_to(
@@ -152,17 +154,17 @@ pub fn set_capture_area(top_left: (i32, i32), bottom_right: (i32, i32)) {
 }
 
 #[tauri::command]
-pub fn set_is_vector_scope_required(app_handle: tauri::AppHandle, state: bool) {
-    if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed) != state {
-        IS_VECTOR_SCOPE_REQUIRED.store(state, Ordering::Relaxed);
+pub fn set_is_vector_scope_window_open(app_handle: tauri::AppHandle, state: bool) {
+    if IS_VECTOR_SCOPE_WINDOW_OPEN.load(Ordering::Relaxed) != state {
+        IS_VECTOR_SCOPE_WINDOW_OPEN.store(state, Ordering::Relaxed);
         check_thread_need_to_be_keep_alive(app_handle);
     }
 }
 
 #[tauri::command]
-pub fn set_is_waveform_required(app_handle: tauri::AppHandle, state: bool) {
-    if IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed) != state {
-        IS_WAVEFORM_REQUIRED.store(state, Ordering::Relaxed);
+pub fn set_is_waveform_window_open(app_handle: tauri::AppHandle, state: bool) {
+    if IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed) != state {
+        IS_WAVEFORM_WINDOW_OPEN.store(state, Ordering::Relaxed);
         check_thread_need_to_be_keep_alive(app_handle);
     }
 }
@@ -191,11 +193,11 @@ pub fn get_graph_image_as_payload() -> Payload {
     let mut base64_vector_scope: String = String::new();
     let mut base64_waveform: String = String::new();
 
-    if IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed) {
+    if IS_VECTOR_SCOPE_WINDOW_OPEN.load(Ordering::Relaxed) {
         base64_vector_scope = get_vector_scope_image_as_base64(&screenshot);
     }
 
-    if IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed) {
+    if IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed) {
         base64_waveform = get_waveform_image_as_base64(&screenshot);
     }
 
@@ -236,8 +238,8 @@ fn is_capture_area_valid() -> bool {
 }
 
 fn check_thread_need_to_be_keep_alive(app_handle: tauri::AppHandle) {
-    if (IS_VECTOR_SCOPE_REQUIRED.load(Ordering::Relaxed)
-        || IS_WAVEFORM_REQUIRED.load(Ordering::Relaxed))
+    if (IS_VECTOR_SCOPE_WINDOW_OPEN.load(Ordering::Relaxed)
+        || IS_WAVEFORM_WINDOW_OPEN.load(Ordering::Relaxed))
         && !IS_MANUAL_REFRESH_MODE_ON.load(Ordering::Relaxed)
     {
         if !THREAD_IMAGE_PROCESS

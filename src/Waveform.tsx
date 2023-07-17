@@ -83,7 +83,7 @@ export function Waveform() {
   }
 
   async function setWaveformRequired(state: boolean) {
-    invoke("set_is_waveform_required", { state: state });
+    invoke("set_is_waveform_window_open", { state: state });
   }
 
   async function setManualModeOn(state: boolean) {

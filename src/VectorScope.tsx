@@ -80,7 +80,7 @@ export function Capture() {
   }
 
   async function setVectorScopeRequired(state: boolean) {
-    invoke("set_is_vector_scope_required", { state: state });
+    invoke("set_is_vector_scope_window_open", { state: state });
   }
 
   async function setManualModeOn(state: boolean) {
