@@ -25,9 +25,9 @@ fn get_mouse_position() -> (i32, i32) {
 }
 
 #[tauri::command]
-fn print_log(text: &str) {
+fn print_log(_text: &str) {
     #[cfg(debug_assertions)]
-    println!("{}", text)
+    println!("{}", _text)
 }
 
 fn create_vector_scope_window(app_handle: tauri::AppHandle) {
@@ -38,9 +38,9 @@ fn create_vector_scope_window(app_handle: tauri::AppHandle) {
     )
     .build()
     {
-        Err(err) => {
+        Err(_err) => {
             #[cfg(debug_assertions)]
-            println!("{err}");
+            println!("{_err}");
             let _ = app_handle
                 .get_window(WINDOW_LABEL_VECTOR_SCOPE)
                 .expect("vector scope window not found")
@@ -58,9 +58,9 @@ fn create_waveform_window(app_handle: tauri::AppHandle) {
     )
     .build()
     {
-        Err(err) => {
+        Err(_err) => {
             #[cfg(debug_assertions)]
-            println!("{err}");
+            println!("{_err}");
             let _ = app_handle
                 .get_window(WINDOW_LABEL_WAVEFORM)
                 .expect("waveform window not found")
@@ -79,9 +79,9 @@ fn create_capture_area_setting_window(app_handle: tauri::AppHandle) {
     )
     .build()
     {
-        Err(err) => {
+        Err(_err) => {
             #[cfg(debug_assertions)]
-            println!("{err}");
+            println!("{_err}");
             let _ = app_handle
                 .get_window(WINDOW_LABEL_CAPTURE_AREA_SETTING)
                 .expect("capture area setting window not found")
