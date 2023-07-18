@@ -1,10 +1,9 @@
 <h1 align="center">Analyze screen by Vector Scope with Tauri (Rust + JS)</h1>
 
-
-
 ![example](/Sample_1.jpg)
 ![example](/Sample_2.jpg)
 ![example](/Sample_3.jpg)
+
 <div align="center">
 Lightweight screen color analyze tool powered by Tauri.
 </div>
@@ -12,6 +11,7 @@ Lightweight screen color analyze tool powered by Tauri.
 <h1>Features</h1>
 
 ### Basic feature
+
 - Show vector scope from screen content
 - Vector scope window is always on top; not blocked by other windows
 - Vector scope window is not captured; the analyze result is not containing vector scope itself
@@ -20,13 +20,15 @@ Lightweight screen color analyze tool powered by Tauri.
   - Standby RAM usage: ~200MB
   - Standby CPU usage: almost 0%
     - Checked on my MacBook (M1 Pro)
-   
+
 ### Refresh view
+
 - Auto refresh: 1 sec interval
 - Manual refresh by: `Command Or Control + Shift + R` (from anywhere. not require focus on window.)
   - This also stops auto refresh for less CPU usage
 
 ### Area speficied capture
+
 - Selected area only analyze
 - Easy to set or reset area
 
@@ -37,7 +39,10 @@ Lightweight screen color analyze tool powered by Tauri.
   - [x] Manual refresh feature
   - [x] Capturing area specified analyze
   - [ ] Better UI
-- [ ] Add waveform
+- [x] Add waveform
+  - [ ] Add luminance view
+  - [ ] Add separate RGB view
+- [ ] Add around mouse local analyze feature
 - [ ] Add user configuration
   - [ ] Analyze resolution
   - [ ] Global shortcut
