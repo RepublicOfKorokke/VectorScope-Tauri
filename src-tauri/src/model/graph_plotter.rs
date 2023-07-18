@@ -105,7 +105,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
         image::ColorType::Rgb8,
         image::ImageFormat::Png,
     )
-    .expect("Failed to write vector scope buffer for create image");
+    .expect("Failed to write vector scope buffer");
     Ok(graph_as_image)
 }
 
@@ -191,6 +191,6 @@ pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error
         image::ColorType::Rgb8,
         image::ImageFormat::Png,
     )
-    .expect("Failed to write waveform buffer for create image");
+    .expect("Failed to write waveform buffer");
     Ok(graph_as_image)
 }
