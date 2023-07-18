@@ -205,13 +205,13 @@ pub fn draw_waveform_luminance(image: &Image) -> Result<Vec<u8>, Box<dyn std::er
             let blue = image_vec[pixel * 4 + 2];
             // let _alpha = image_vec[pixel * 4 + 3];
 
-            // plot pixels
             let plot_x = (pixel as u32 % image_width) as i32;
             let luminace = (0.30 * red as f32) + (0.56 * green as f32) + (0.14 * blue as f32);
             let backend_color = plotters_backend::BackendColor {
                 alpha: 1.0,
                 rgb: (red, green, blue),
             };
+
             root.draw_pixel((plot_x, luminace as i32), backend_color)
                 .expect("Error on plot pixel");
 
