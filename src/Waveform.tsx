@@ -44,7 +44,10 @@ export function Waveform() {
   registerGlobalShortcutKey();
   listenCloseWindow();
   window.addEventListener("dblclick", () => setManualModeOn(false));
-  window.addEventListener("click", setImageSize);
+  window.addEventListener("contextmenu", (event: MouseEvent) => {
+    event.preventDefault();
+    setImageSize();
+  });
 
   async function initializeWindow() {
     appWindow.setTitle("Waveform");
