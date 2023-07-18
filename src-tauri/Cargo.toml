@@ -1,6 +1,6 @@
 [package]
 name = "tauri-vector-scope"
-version = "0.4.0"
+version = "0.4.1"
 description = "Image analyze tool with Tauri"
 authors = ["Republic Of Korokke"]
 license = ""
