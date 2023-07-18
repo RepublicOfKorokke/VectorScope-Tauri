@@ -39,6 +39,9 @@ export function Capture() {
   registerGlobalShortcutKey();
   listenCloseWindow();
   window.addEventListener("dblclick", () => setManualModeOn(false));
+  window.addEventListener("contextmenu", (event: MouseEvent) => {
+    event.preventDefault();
+  });
 
   async function initializeWindow() {
     appWindow.setTitle("Vector Scope");
