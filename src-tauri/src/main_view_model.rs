@@ -240,7 +240,7 @@ fn get_vector_scope_image_as_base64(screenshot: &Image) -> String {
 
 fn get_waveform_image_as_base64(screenshot: &Image) -> String {
     let waveform_image =
-        graph_plotter::draw_waveform(&screenshot).expect("Failed to draw waveform");
+        graph_plotter::draw_waveform_luminance(&screenshot).expect("Failed to draw waveform");
     let base64_waveform = BASE64_ENGINE
         .get_or_init(init_base64_engine)
         .encode(waveform_image);
