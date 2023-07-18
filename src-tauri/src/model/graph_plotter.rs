@@ -3,29 +3,50 @@ use image;
 use plotters::prelude::*;
 use plotters_backend;
 use plotters_bitmap::bitmap_pixel::RGBPixel;
+use screenshots::Image;
 use std::io::Cursor;
 use std::sync::OnceLock;
 
-const GRAPH_WIDTH: u32 = 250;
-const GRAPH_HEIGHT: u32 = 250;
-const VECTOR_SCOPE_CENTER: (i32, i32) = ((GRAPH_WIDTH / 2) as i32, (GRAPH_HEIGHT / 2) as i32);
+const VECTOR_SCOPE_WIDHT: u32 = 250;
+const VECTOR_SCOPE_HEIGHT: u32 = 250;
+const VECTOR_SCOPE_CENTER: (i32, i32) = (
+    (VECTOR_SCOPE_WIDHT / 2) as i32,
+    (VECTOR_SCOPE_HEIGHT / 2) as i32,
+);
+const WAVEFORM_HEIGHT: u32 = 255;
 const ANALYZE_SKIP_RATIO: usize = 64;
 
-static BUFFER_SIZE_GRAPH: OnceLock<usize> = OnceLock::new();
+static VECTOR_SCOPE_BUFFER_SIZE: OnceLock<usize> = OnceLock::new();
+#[cold]
+fn init_vector_scope_buffer_size() -> usize {
+    (VECTOR_SCOPE_WIDHT * VECTOR_SCOPE_HEIGHT * 3) as usize
+}
+
 static COLOR_LINE: OnceLock<plotters_backend::BackendColor> = OnceLock::new();
+#[cold]
+fn init_line_color() -> plotters_backend::BackendColor {
+    plotters_backend::BackendColor {
+        alpha: 1.0,
+        rgb: (100, 100, 100),
+    }
+}
 
 #[inline(always)]
-pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    let mut graph = vec![16; *BUFFER_SIZE_GRAPH.get_or_init(set_graph_size)];
+pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    let image_vec = image.rgba();
+    let mut graph = vec![16; *VECTOR_SCOPE_BUFFER_SIZE.get_or_init(init_vector_scope_buffer_size)];
     {
-        let mut root: BitMapBackend<RGBPixel> =
-            BitMapBackend::with_buffer_and_format(&mut graph, (GRAPH_WIDTH, GRAPH_HEIGHT)).unwrap();
+        let mut root: BitMapBackend<RGBPixel> = BitMapBackend::with_buffer_and_format(
+            &mut graph,
+            (VECTOR_SCOPE_WIDHT, VECTOR_SCOPE_HEIGHT),
+        )
+        .unwrap();
         let mut index: usize = 0;
-        while index < image.len() {
-            let red = image[index];
-            let green = image[index + 1];
-            let blue = image[index + 2];
-            let _alpha = image[index + 3];
+        while index < image_vec.len() {
+            let red = image_vec[index];
+            let green = image_vec[index + 1];
+            let blue = image_vec[index + 2];
+            let _alpha = image_vec[index + 3];
 
             let rgb = Rgb::from(red.into(), green.into(), blue.into());
 
@@ -49,23 +70,29 @@ pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::E
             )
             .expect("Error on plot pixel");
 
-            // draw center line
-            root.draw_line(
-                (0, VECTOR_SCOPE_CENTER.1),
-                (GRAPH_WIDTH.try_into().unwrap(), VECTOR_SCOPE_CENTER.1),
-                COLOR_LINE.get_or_init(set_line_color),
-            )
-            .expect("Error on draw line");
-
-            root.draw_line(
-                (VECTOR_SCOPE_CENTER.0, 0),
-                (VECTOR_SCOPE_CENTER.0, GRAPH_HEIGHT.try_into().unwrap()),
-                COLOR_LINE.get_or_init(set_line_color),
-            )
-            .expect("Error on draw line");
-
             index = index + (4 * ANALYZE_SKIP_RATIO);
         }
+
+        // draw center line
+        root.draw_line(
+            (0, VECTOR_SCOPE_CENTER.1),
+            (
+                VECTOR_SCOPE_WIDHT.try_into().unwrap(),
+                VECTOR_SCOPE_CENTER.1,
+            ),
+            COLOR_LINE.get_or_init(init_line_color),
+        )
+        .expect("Error on draw line");
+        root.draw_line(
+            (VECTOR_SCOPE_CENTER.0, 0),
+            (
+                VECTOR_SCOPE_CENTER.0,
+                VECTOR_SCOPE_HEIGHT.try_into().unwrap(),
+            ),
+            COLOR_LINE.get_or_init(init_line_color),
+        )
+        .expect("Error on draw line");
+
         root.present()?;
     }
 
@@ -73,24 +100,97 @@ pub fn draw_vectorscope(image: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::E
     image::write_buffer_with_format(
         &mut Cursor::new(&mut graph_as_image),
         &graph,
-        GRAPH_WIDTH,
-        GRAPH_HEIGHT,
+        VECTOR_SCOPE_WIDHT,
+        VECTOR_SCOPE_HEIGHT,
         image::ColorType::Rgb8,
         image::ImageFormat::Png,
     )
-    .expect("Failed to write waveform buffer for create image");
+    .expect("Failed to write vector scope buffer");
     Ok(graph_as_image)
 }
 
-#[cold]
-fn set_graph_size() -> usize {
-    (GRAPH_WIDTH * GRAPH_HEIGHT * 3) as usize
-}
+#[inline(always)]
+pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    let image_vec = image.rgba();
+    let image_width = image.width();
+    let mut graph = vec![16; (image_width * WAVEFORM_HEIGHT * 3) as usize];
+    {
+        let mut root: BitMapBackend<RGBPixel> =
+            BitMapBackend::with_buffer_and_format(&mut graph, (image_width, WAVEFORM_HEIGHT))
+                .unwrap();
 
-#[cold]
-fn set_line_color() -> plotters_backend::BackendColor {
-    plotters_backend::BackendColor {
-        alpha: 1.0,
-        rgb: (100, 100, 100),
+        let mut index: usize = 0;
+        let mut pixel: usize = 0;
+        while index < image_vec.len() {
+            let red = image_vec[pixel * 4];
+            let green = image_vec[pixel * 4 + 1];
+            let blue = image_vec[pixel * 4 + 2];
+            // let _alpha = image_vec[pixel * 4 + 3];
+
+            let backend_color_red = plotters_backend::BackendColor {
+                alpha: 1.0,
+                rgb: (red, 0, 0),
+            };
+
+            let backend_color_green = plotters_backend::BackendColor {
+                alpha: 1.0,
+                rgb: (0, green, 0),
+            };
+
+            let backend_color_blue = plotters_backend::BackendColor {
+                alpha: 1.0,
+                rgb: (0, 0, blue),
+            };
+
+            // plot pixels
+            let plot_x = (pixel as u32 % image_width) as i32;
+            root.draw_pixel((plot_x, red.into()), backend_color_red)
+                .expect("Error on plot pixel");
+            root.draw_pixel((plot_x, green.into()), backend_color_green)
+                .expect("Error on plot pixel");
+            root.draw_pixel((plot_x, blue.into()), backend_color_blue)
+                .expect("Error on plot pixel");
+
+            // let rgb = Rgb::from(red.into(), green.into(), blue.into());
+            // let backend_color = plotters_backend::BackendColor {
+            //     alpha: 1.0,
+            //     rgb: (red, green, blue),
+            // };
+            // root.draw_pixel((plot_x, rgb.get_lightness() as i32), backend_color)
+            //     .expect("Error on plot pixel");
+
+            pixel += 1;
+            index += 4;
+        }
+
+        // draw 128 line
+        root.draw_line(
+            (0, 128),
+            (image_width.try_into().unwrap(), 128),
+            COLOR_LINE.get_or_init(init_line_color),
+        )
+        .expect("Error on draw 128 line");
+
+        // draw half widht line
+        root.draw_line(
+            ((image_width / 2).try_into().unwrap(), 0),
+            ((image_width / 2).try_into().unwrap(), 255),
+            COLOR_LINE.get_or_init(init_line_color),
+        )
+        .expect("Error on draw half width line");
+
+        root.present()?;
     }
+
+    let mut graph_as_image: Vec<u8> = Vec::new();
+    image::write_buffer_with_format(
+        &mut Cursor::new(&mut graph_as_image),
+        &graph,
+        image_width,
+        WAVEFORM_HEIGHT,
+        image::ColorType::Rgb8,
+        image::ImageFormat::Png,
+    )
+    .expect("Failed to write waveform buffer");
+    Ok(graph_as_image)
 }

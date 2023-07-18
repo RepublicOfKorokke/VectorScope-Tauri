@@ -6,14 +6,14 @@ pub struct Worker {
 }
 
 pub trait WorkerTrait {
-    fn run(&self, window: tauri::Window);
+    fn run(&self, app_handle: tauri::AppHandle);
     fn stop(&self);
 }
 
 impl Worker {
     pub fn new() -> Self {
         Self {
-            keep_alive: Arc::new(AtomicBool::new(true)),
+            keep_alive: Arc::new(AtomicBool::new(false)),
         }
     }
 }
