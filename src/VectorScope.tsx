@@ -54,7 +54,7 @@ export function Capture() {
       setImage(temporaryImage);
       dataURI = "";
     });
-    setVectorScopeRequired(true);
+    setIsVectorScopeWindowOpen(true);
     setManualModeOn(false);
   }
 
@@ -67,13 +67,13 @@ export function Capture() {
 
   async function listenCloseWindow() {
     await appWindow.onCloseRequested(async () => {
-      setVectorScopeRequired(false);
+      setIsVectorScopeWindowOpen(false);
       unregister(GLOBAL_SHORTCUT_KEY);
     });
   }
 
-  async function setVectorScopeRequired(state: boolean) {
-    invoke("set_is_vector_scope_window_open", { state: state });
+  async function setIsVectorScopeWindowOpen(open: boolean) {
+    invoke("set_is_vector_scope_window_open", { state: open });
   }
 
   async function setManualModeOn(state: boolean) {

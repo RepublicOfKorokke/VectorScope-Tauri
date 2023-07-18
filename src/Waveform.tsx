@@ -60,7 +60,7 @@ export function Waveform() {
       setImage(temporaryImage);
       dataURI = "";
     });
-    setWaveformRequired(true);
+    setIsWaveformWindowOpen(true);
     setManualModeOn(false);
   }
 
@@ -73,13 +73,13 @@ export function Waveform() {
 
   async function listenCloseWindow() {
     await appWindow.onCloseRequested(async () => {
-      setWaveformRequired(false);
+      setIsWaveformWindowOpen(false);
       unregister(GLOBAL_SHORTCUT_KEY);
     });
   }
 
-  async function setWaveformRequired(state: boolean) {
-    invoke("set_is_waveform_window_open", { state: state });
+  async function setIsWaveformWindowOpen(open: boolean) {
+    invoke("set_is_waveform_window_open", { state: open });
   }
 
   async function setManualModeOn(state: boolean) {
