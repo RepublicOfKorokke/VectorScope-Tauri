@@ -40,7 +40,7 @@ Lightweight screen color analyze tool powered by Tauri.
   - [x] Capturing area specified analyze
   - [ ] Better UI
 - [x] Add waveform
-  - [ ] Add luminance view
+  - [x] Add luminance view
   - [ ] Add separate RGB view
 - [ ] Add around mouse local analyze feature
 - [ ] Add user configuration

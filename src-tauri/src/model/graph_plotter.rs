@@ -151,13 +151,69 @@ pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error
             root.draw_pixel((plot_x, blue.into()), backend_color_blue)
                 .expect("Error on plot pixel");
 
-            // let rgb = Rgb::from(red.into(), green.into(), blue.into());
-            // let backend_color = plotters_backend::BackendColor {
-            //     alpha: 1.0,
-            //     rgb: (red, green, blue),
-            // };
-            // root.draw_pixel((plot_x, rgb.get_lightness() as i32), backend_color)
-            //     .expect("Error on plot pixel");
+            pixel += 1;
+            index += 4;
+        }
+
+        // draw 128 line
+        root.draw_line(
+            (0, 128),
+            (image_width.try_into().unwrap(), 128),
+            COLOR_LINE.get_or_init(init_line_color),
+        )
+        .expect("Error on draw 128 line");
+
+        // draw half widht line
+        root.draw_line(
+            ((image_width / 2).try_into().unwrap(), 0),
+            ((image_width / 2).try_into().unwrap(), 255),
+            COLOR_LINE.get_or_init(init_line_color),
+        )
+        .expect("Error on draw half width line");
+
+        root.present()?;
+    }
+
+    let mut graph_as_image: Vec<u8> = Vec::new();
+    image::write_buffer_with_format(
+        &mut Cursor::new(&mut graph_as_image),
+        &graph,
+        image_width,
+        WAVEFORM_HEIGHT,
+        image::ColorType::Rgb8,
+        image::ImageFormat::Png,
+    )
+    .expect("Failed to write waveform buffer");
+    Ok(graph_as_image)
+}
+
+#[inline(always)]
+pub fn draw_waveform_luminance(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    let image_vec = image.rgba();
+    let image_width = image.width();
+    let mut graph = vec![16; (image_width * WAVEFORM_HEIGHT * 3) as usize];
+    {
+        let mut root: BitMapBackend<RGBPixel> =
+            BitMapBackend::with_buffer_and_format(&mut graph, (image_width, WAVEFORM_HEIGHT))
+                .unwrap();
+
+        let mut index: usize = 0;
+        let mut pixel: usize = 0;
+        while index < image_vec.len() {
+            let red = image_vec[pixel * 4];
+            let green = image_vec[pixel * 4 + 1];
+            let blue = image_vec[pixel * 4 + 2];
+            // let _alpha = image_vec[pixel * 4 + 3];
+
+            let plot_x = (pixel as u32 % image_width) as i32;
+            let luminace = (0.30 * red as f32) + (0.56 * green as f32) + (0.14 * blue as f32);
+            let backend_color = plotters_backend::BackendColor {
+                alpha: 1.0,
+                rgb: (red, green, blue),
+            };
+
+            root.draw_pixel((plot_x, luminace as i32), backend_color)
+                .expect("Error on plot pixel");
 
             pixel += 1;
             index += 4;
