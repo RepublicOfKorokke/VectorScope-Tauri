@@ -7,6 +7,7 @@ use screenshots::Image;
 use std::io::Cursor;
 use std::sync::OnceLock;
 
+const BACKGROUND_COLOR: u8 = 16;
 const VECTOR_SCOPE_WIDHT: u32 = 250;
 const VECTOR_SCOPE_HEIGHT: u32 = 250;
 const VECTOR_SCOPE_CENTER: (i32, i32) = (
@@ -42,7 +43,10 @@ fn init_skin_tone_line() -> (f64, f64) {
 #[inline(always)]
 pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let image_vec = image.rgba();
-    let mut graph = vec![16; *VECTOR_SCOPE_BUFFER_SIZE.get_or_init(init_vector_scope_buffer_size)];
+    let mut graph = vec![
+        BACKGROUND_COLOR;
+        *VECTOR_SCOPE_BUFFER_SIZE.get_or_init(init_vector_scope_buffer_size)
+    ];
     {
         let mut root: BitMapBackend<RGBPixel> = BitMapBackend::with_buffer_and_format(
             &mut graph,
@@ -142,7 +146,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
 pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let image_vec = image.rgba();
     let image_width = image.width();
-    let mut graph = vec![16; (image_width * WAVEFORM_HEIGHT * 3) as usize];
+    let mut graph = vec![BACKGROUND_COLOR; (image_width * WAVEFORM_HEIGHT * 3) as usize];
     {
         let mut root: BitMapBackend<RGBPixel> =
             BitMapBackend::with_buffer_and_format(&mut graph, (image_width, WAVEFORM_HEIGHT))
@@ -220,7 +224,7 @@ pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error
 pub fn draw_waveform_luminance(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let image_vec = image.rgba();
     let image_width = image.width();
-    let mut graph = vec![16; (image_width * WAVEFORM_HEIGHT * 3) as usize];
+    let mut graph = vec![BACKGROUND_COLOR; (image_width * WAVEFORM_HEIGHT * 3) as usize];
     {
         let mut root: BitMapBackend<RGBPixel> =
             BitMapBackend::with_buffer_and_format(&mut graph, (image_width, WAVEFORM_HEIGHT))
