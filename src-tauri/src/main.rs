@@ -9,6 +9,7 @@ use crate::model::screenshot_capture;
 use tauri::Manager;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
+const HTML_DIR: &str = "src/pages/";
 const WINDOW_LABEL_VECTOR_SCOPE: &str = "window_vector_scope";
 const WINDOW_LABEL_WAVEFORM: &str = "window_waveform";
 const WINDOW_LABEL_CAPTURE_AREA_SETTING: &str = "window_capture_area_setting";
@@ -33,7 +34,7 @@ fn create_vector_scope_window(app_handle: tauri::AppHandle) {
     let _vector_scope_window = match tauri::WindowBuilder::new(
         &app_handle,
         WINDOW_LABEL_VECTOR_SCOPE,
-        tauri::WindowUrl::App("index.html".into()),
+        tauri::WindowUrl::App((HTML_DIR.to_owned() + "vector_scope/vector_scope.html").into()),
     )
     .build()
     {
@@ -53,7 +54,7 @@ fn create_waveform_window(app_handle: tauri::AppHandle) {
     let _vector_scope_window = match tauri::WindowBuilder::new(
         &app_handle,
         WINDOW_LABEL_WAVEFORM,
-        tauri::WindowUrl::App("waveform.html".into()),
+        tauri::WindowUrl::App((HTML_DIR.to_owned() + "waveform/waveform.html").into()),
     )
     .build()
     {
@@ -74,7 +75,10 @@ fn create_capture_area_setting_window(app_handle: tauri::AppHandle) {
     let _capture_area_setting_window = match tauri::WindowBuilder::new(
         &app_handle,
         WINDOW_LABEL_CAPTURE_AREA_SETTING,
-        tauri::WindowUrl::App("capture_area_setting_window.html".into()),
+        tauri::WindowUrl::App(
+            (HTML_DIR.to_owned() + "capture_area_setting_window/capture_area_setting_window.html")
+                .into(),
+        ),
     )
     .build()
     {

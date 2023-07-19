@@ -3,7 +3,7 @@ import { createSignal } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import { appWindow, LogicalSize } from "@tauri-apps/api/window";
 
-import "./styles.css";
+import "../common/styles.css";
 
 export function CaptureAreaSetting() {
   appWindow.setTitle("Capture Area Setting");

@@ -41,6 +41,7 @@
     },
     "windows": [
       {
+        "url": "src/pages/vector_scope/vector_scope.html",
         "fullscreen": false,
         "label": "window_vector_scope",
         "width": 500,
