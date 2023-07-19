@@ -252,13 +252,17 @@ pub fn draw_waveform_luminance(image: &Image) -> Result<Vec<u8>, Box<dyn std::er
             index += 4;
         }
 
-        // draw 128 line
-        root.draw_line(
-            (0, 128),
-            (image_width.try_into().unwrap(), 128),
-            COLOR_LINE.get_or_init(init_line_color),
-        )
-        .expect("Error on draw 128 line");
+        // draw luminace aux lines
+        let mut luminace: i32 = 64;
+        while luminace < 255 {
+            root.draw_line(
+                (0, luminace),
+                (image_width.try_into().unwrap(), luminace),
+                AUX_LINE_COLOR.get_or_init(init_aux_line_color),
+            )
+            .expect("Error on draw luminace auxiliary line");
+            luminace += 64;
+        }
 
         // draw half widht line
         root.draw_line(
