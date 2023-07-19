@@ -23,12 +23,21 @@ fn init_vector_scope_buffer_size() -> usize {
     (VECTOR_SCOPE_WIDHT * VECTOR_SCOPE_HEIGHT * 3) as usize
 }
 
-static AUX_LINE_COLOR: OnceLock<plotters_backend::BackendColor> = OnceLock::new();
+static VECTOR_SCOPE_AUX_LINE_COLOR: OnceLock<plotters_backend::BackendColor> = OnceLock::new();
 #[cold]
-fn init_aux_line_color() -> plotters_backend::BackendColor {
+fn init_vector_scope_aux_line_color() -> plotters_backend::BackendColor {
     plotters_backend::BackendColor {
         alpha: 1.0,
         rgb: (100, 100, 100),
+    }
+}
+
+static WAVEFORM_AUX_LINE_COLOR: OnceLock<plotters_backend::BackendColor> = OnceLock::new();
+#[cold]
+fn init_waveform_aux_line_color() -> plotters_backend::BackendColor {
+    plotters_backend::BackendColor {
+        alpha: 1.0,
+        rgb: (255, 255, 255),
     }
 }
 
@@ -89,7 +98,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
         root.draw_circle(
             VECTOR_SCOPE_CENTER,
             100,
-            AUX_LINE_COLOR.get_or_init(init_aux_line_color),
+            VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
             false,
         );
 
@@ -100,7 +109,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
                 VECTOR_SCOPE_WIDHT.try_into().unwrap(),
                 VECTOR_SCOPE_CENTER.1,
             ),
-            AUX_LINE_COLOR.get_or_init(init_aux_line_color),
+            VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
         )
         .expect("Error on draw line");
         root.draw_line(
@@ -109,7 +118,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
                 VECTOR_SCOPE_CENTER.0,
                 VECTOR_SCOPE_HEIGHT.try_into().unwrap(),
             ),
-            AUX_LINE_COLOR.get_or_init(init_aux_line_color),
+            VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
         )
         .expect("Error on draw line");
 
@@ -122,7 +131,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
                 (VECTOR_SCOPE_CENTER.1 as f64 - SKIN_TONE_LINE.get_or_init(init_skin_tone_line).1)
                     as i32,
             ),
-            AUX_LINE_COLOR.get_or_init(init_aux_line_color),
+            VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
         )
         .expect("Error on draw line");
 
@@ -192,7 +201,7 @@ pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error
         root.draw_line(
             (0, 128),
             (image_width.try_into().unwrap(), 128),
-            AUX_LINE_COLOR.get_or_init(init_aux_line_color),
+            WAVEFORM_AUX_LINE_COLOR.get_or_init(init_waveform_aux_line_color),
         )
         .expect("Error on draw 128 line");
 
@@ -200,7 +209,7 @@ pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error
         root.draw_line(
             ((image_width / 2).try_into().unwrap(), 0),
             ((image_width / 2).try_into().unwrap(), 255),
-            AUX_LINE_COLOR.get_or_init(init_aux_line_color),
+            WAVEFORM_AUX_LINE_COLOR.get_or_init(init_waveform_aux_line_color),
         )
         .expect("Error on draw half width line");
 
@@ -258,7 +267,7 @@ pub fn draw_waveform_luminance(image: &Image) -> Result<Vec<u8>, Box<dyn std::er
             root.draw_line(
                 (0, luminace),
                 (image_width.try_into().unwrap(), luminace),
-                AUX_LINE_COLOR.get_or_init(init_aux_line_color),
+                WAVEFORM_AUX_LINE_COLOR.get_or_init(init_waveform_aux_line_color),
             )
             .expect("Error on draw luminace auxiliary line");
             luminace += 64;
@@ -268,7 +277,7 @@ pub fn draw_waveform_luminance(image: &Image) -> Result<Vec<u8>, Box<dyn std::er
         root.draw_line(
             ((image_width / 2).try_into().unwrap(), 0),
             ((image_width / 2).try_into().unwrap(), 255),
-            AUX_LINE_COLOR.get_or_init(init_aux_line_color),
+            WAVEFORM_AUX_LINE_COLOR.get_or_init(init_waveform_aux_line_color),
         )
         .expect("Error on draw half width line");
 
