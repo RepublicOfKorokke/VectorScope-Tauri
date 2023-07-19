@@ -95,13 +95,17 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
         }
 
         // draw circle frame
-        root.draw_circle(
-            VECTOR_SCOPE_CENTER,
-            100,
-            VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
-            false,
-        )
-        .expect("Error on draw vector scope circle");
+        let mut saturation: u32 = 25;
+        while saturation <= 100 {
+            root.draw_circle(
+                VECTOR_SCOPE_CENTER,
+                saturation,
+                VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
+                false,
+            )
+            .expect("Error on draw vector scope circle");
+            saturation += 25;
+        }
 
         // draw center line
         root.draw_line(
