@@ -73,6 +73,14 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
             index = index + (4 * ANALYZE_SKIP_RATIO);
         }
 
+        // draw circle frame
+        root.draw_circle(
+            VECTOR_SCOPE_CENTER,
+            100,
+            COLOR_LINE.get_or_init(init_line_color),
+            false,
+        );
+
         // draw center line
         root.draw_line(
             (0, VECTOR_SCOPE_CENTER.1),
