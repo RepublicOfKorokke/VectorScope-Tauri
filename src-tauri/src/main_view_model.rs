@@ -1,6 +1,7 @@
 use crate::graph_plotter;
 use crate::model::worker_thread_base;
 use crate::model::worker_thread_base::WorkerTrait;
+use crate::mouse_info;
 use crate::screenshot_capture;
 use base64::{
     alphabet,
@@ -99,6 +100,8 @@ fn process_and_emit_image(app_handle: &tauri::AppHandle) {
     let screenshot = capture_screenshot();
     let mut base64_vector_scope = String::new();
     let mut base64_waveform = String::new();
+
+    let mouse_position = mouse_info::get_mouse_position();
 
     if IS_VECTOR_SCOPE_WINDOW_OPEN.load(Ordering::Relaxed) {
         base64_vector_scope = get_vector_scope_image_as_base64(&screenshot);

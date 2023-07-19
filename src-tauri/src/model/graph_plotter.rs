@@ -140,6 +140,31 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
         )
         .expect("Error on draw skin tone line");
 
+        // draw mouse position color
+        let index = 100;
+        let red = image_vec[index];
+        let green = image_vec[index + 1];
+        let blue = image_vec[index + 2];
+        let _alpha = image_vec[index + 3];
+
+        let rgb = Rgb::from(red.into(), green.into(), blue.into());
+
+        let backend_color = plotters_backend::BackendColor {
+            alpha: 1.0,
+            rgb: (red, green, blue),
+        };
+        let color_degree: f64 = (rgb.get_hue() + 103.4) as f64;
+        let color_degree_as_radians: f64 = color_degree.to_radians();
+        let saturation: f64 = rgb.get_saturation() as f64;
+        let color_delta_x = saturation * f64::cos(color_degree_as_radians);
+        let color_delta_y = saturation * f64::sin(color_degree_as_radians);
+        root.draw_circle(
+            VECTOR_SCOPE_CENTER,
+            saturation,
+            VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
+            false,
+        )
+        .expect("Error on draw vector scope circle");
         root.present()?;
     }
 
