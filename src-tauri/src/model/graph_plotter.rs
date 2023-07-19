@@ -54,7 +54,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
                 alpha: 1.0,
                 rgb: (red, green, blue),
             };
-            let color_degree: f64 = (rgb.get_hue() + 90.0) as f64;
+            let color_degree: f64 = (rgb.get_hue() + 103.4) as f64;
             let color_degree_as_radians: f64 = color_degree.to_radians();
             let saturation: f64 = rgb.get_saturation() as f64;
             let color_delta_x = saturation * f64::cos(color_degree_as_radians);
