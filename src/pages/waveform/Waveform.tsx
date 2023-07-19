@@ -5,7 +5,7 @@ import { listen } from "@tauri-apps/api/event";
 import { appWindow, LogicalSize } from "@tauri-apps/api/window";
 import { register, unregister } from "@tauri-apps/api/globalShortcut";
 
-import "./styles.css";
+import "../common/styles.css";
 import "./waveform.css";
 
 const GLOBAL_SHORTCUT_KEY: string = "CommandOrControl+Shift+V";

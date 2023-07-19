@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 import solidPlugin from "vite-plugin-solid";
 
+const PAGE_DIR: String = "/src/pages/";
+
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [solidPlugin()],
@@ -26,11 +28,14 @@ export default defineConfig(async () => ({
     sourcemap: !!process.env.TAURI_DEBUG,
     rollupOptions: {
       input: {
-        vector_scope: resolve(__dirname + "/src/html/", "vector_scope.html"),
-        waveform: resolve(__dirname + "/src/html/", "waveform.html"),
+        vector_scope: resolve(
+          __dirname + PAGE_DIR,
+          "vector_scope/vector_scope.html"
+        ),
+        waveform: resolve(__dirname + PAGE_DIR, "waveform/waveform.html"),
         capture_area_setting: resolve(
-          __dirname + "/src/html/",
-          "capture_area_setting_window.html"
+          __dirname + PAGE_DIR,
+          "capture_area_setting_window/capture_area_setting_window.html"
         ),
       },
     },
