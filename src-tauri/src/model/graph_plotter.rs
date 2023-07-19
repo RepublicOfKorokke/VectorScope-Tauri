@@ -100,7 +100,8 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
             100,
             VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
             false,
-        );
+        )
+        .expect("Error on draw vector scope circle");
 
         // draw center line
         root.draw_line(
@@ -111,7 +112,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
             ),
             VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
         )
-        .expect("Error on draw line");
+        .expect("Error on draw center line");
         root.draw_line(
             (VECTOR_SCOPE_CENTER.0, 0),
             (
@@ -120,7 +121,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
             ),
             VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
         )
-        .expect("Error on draw line");
+        .expect("Error on draw center line");
 
         // draw skin tone line
         root.draw_line(
@@ -133,7 +134,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
             ),
             VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
         )
-        .expect("Error on draw line");
+        .expect("Error on draw skin tone line");
 
         root.present()?;
     }
