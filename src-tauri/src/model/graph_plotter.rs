@@ -31,6 +31,14 @@ fn init_line_color() -> plotters_backend::BackendColor {
     }
 }
 
+static SKIN_TONE_LINE: OnceLock<(f64, f64)> = OnceLock::new();
+#[cold]
+fn init_skin_tone_line() -> (f64, f64) {
+    let line_x = f64::cos(57f64.to_radians()) * 100.0;
+    let line_y = f64::sin(57f64.to_radians()) * 100.0;
+    (line_x, line_y)
+}
+
 #[inline(always)]
 pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let image_vec = image.rgba();
@@ -96,6 +104,19 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
             (
                 VECTOR_SCOPE_CENTER.0,
                 VECTOR_SCOPE_HEIGHT.try_into().unwrap(),
+            ),
+            COLOR_LINE.get_or_init(init_line_color),
+        )
+        .expect("Error on draw line");
+
+        // draw skin tone line
+        root.draw_line(
+            (VECTOR_SCOPE_CENTER.0, VECTOR_SCOPE_CENTER.1),
+            (
+                (VECTOR_SCOPE_CENTER.0 as f64 - SKIN_TONE_LINE.get_or_init(init_skin_tone_line).0)
+                    as i32,
+                (VECTOR_SCOPE_CENTER.1 as f64 - SKIN_TONE_LINE.get_or_init(init_skin_tone_line).1)
+                    as i32,
             ),
             COLOR_LINE.get_or_init(init_line_color),
         )
