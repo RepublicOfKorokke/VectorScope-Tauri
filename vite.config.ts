@@ -26,10 +26,10 @@ export default defineConfig(async () => ({
     sourcemap: !!process.env.TAURI_DEBUG,
     rollupOptions: {
       input: {
-        vector_scope: resolve(__dirname, "index.html"),
-        waveform: resolve(__dirname, "waveform.html"),
+        vector_scope: resolve(__dirname + "/src/html/", "vector_scope.html"),
+        waveform: resolve(__dirname + "/src/html/", "waveform.html"),
         capture_area_setting: resolve(
-          __dirname,
+          __dirname + "/src/html/",
           "capture_area_setting_window.html"
         ),
       },
