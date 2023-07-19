@@ -27,7 +27,7 @@ Lightweight screen color analyze tool powered by Tauri.
 - Manual refresh by: `Command Or Control + Shift + R` (from anywhere. not require focus on window.)
   - This also stops auto refresh for less CPU usage
 
-### Area speficied capture
+### Area specified capture
 
 - Selected area only analyze
 - Easy to set or reset area

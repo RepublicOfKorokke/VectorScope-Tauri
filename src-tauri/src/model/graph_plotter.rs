@@ -253,29 +253,29 @@ pub fn draw_waveform_luminance(image: &Image) -> Result<Vec<u8>, Box<dyn std::er
             // let _alpha = image_vec[pixel * 4 + 3];
 
             let plot_x = (pixel as u32 % image_width) as i32;
-            let luminace = (0.30 * red as f32) + (0.56 * green as f32) + (0.14 * blue as f32);
+            let luminance = (0.30 * red as f32) + (0.56 * green as f32) + (0.14 * blue as f32);
             let backend_color = plotters_backend::BackendColor {
                 alpha: 1.0,
                 rgb: (red, green, blue),
             };
 
-            root.draw_pixel((plot_x, luminace as i32), backend_color)
+            root.draw_pixel((plot_x, luminance as i32), backend_color)
                 .expect("Error on plot pixel");
 
             pixel += 1;
             index += 4;
         }
 
-        // draw luminace aux lines
-        let mut luminace: i32 = 64;
-        while luminace < 255 {
+        // draw luminance aux lines
+        let mut luminance: i32 = 64;
+        while luminance < 255 {
             root.draw_line(
-                (0, luminace),
-                (image_width.try_into().unwrap(), luminace),
+                (0, luminance),
+                (image_width.try_into().unwrap(), luminance),
                 WAVEFORM_AUX_LINE_COLOR.get_or_init(init_waveform_aux_line_color),
             )
-            .expect("Error on draw luminace auxiliary line");
-            luminace += 64;
+            .expect("Error on draw luminance auxiliary line");
+            luminance += 64;
         }
 
         // draw half widht line
