@@ -7,6 +7,7 @@ use screenshots::Image;
 use std::io::Cursor;
 use std::sync::OnceLock;
 
+const BACKGROUND_COLOR: u8 = 16;
 const VECTOR_SCOPE_WIDHT: u32 = 250;
 const VECTOR_SCOPE_HEIGHT: u32 = 250;
 const VECTOR_SCOPE_CENTER: (i32, i32) = (
@@ -22,19 +23,39 @@ fn init_vector_scope_buffer_size() -> usize {
     (VECTOR_SCOPE_WIDHT * VECTOR_SCOPE_HEIGHT * 3) as usize
 }
 
-static COLOR_LINE: OnceLock<plotters_backend::BackendColor> = OnceLock::new();
+static VECTOR_SCOPE_AUX_LINE_COLOR: OnceLock<plotters_backend::BackendColor> = OnceLock::new();
 #[cold]
-fn init_line_color() -> plotters_backend::BackendColor {
+fn init_vector_scope_aux_line_color() -> plotters_backend::BackendColor {
     plotters_backend::BackendColor {
         alpha: 1.0,
         rgb: (100, 100, 100),
     }
 }
 
+static WAVEFORM_AUX_LINE_COLOR: OnceLock<plotters_backend::BackendColor> = OnceLock::new();
+#[cold]
+fn init_waveform_aux_line_color() -> plotters_backend::BackendColor {
+    plotters_backend::BackendColor {
+        alpha: 1.0,
+        rgb: (255, 255, 255),
+    }
+}
+
+static SKIN_TONE_LINE: OnceLock<(f64, f64)> = OnceLock::new();
+#[cold]
+fn init_skin_tone_line() -> (f64, f64) {
+    let line_x = f64::cos(57f64.to_radians()) * 100.0;
+    let line_y = f64::sin(57f64.to_radians()) * 100.0;
+    (line_x, line_y)
+}
+
 #[inline(always)]
 pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let image_vec = image.rgba();
-    let mut graph = vec![16; *VECTOR_SCOPE_BUFFER_SIZE.get_or_init(init_vector_scope_buffer_size)];
+    let mut graph = vec![
+        BACKGROUND_COLOR;
+        *VECTOR_SCOPE_BUFFER_SIZE.get_or_init(init_vector_scope_buffer_size)
+    ];
     {
         let mut root: BitMapBackend<RGBPixel> = BitMapBackend::with_buffer_and_format(
             &mut graph,
@@ -54,7 +75,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
                 alpha: 1.0,
                 rgb: (red, green, blue),
             };
-            let color_degree: f64 = (rgb.get_hue() + 90.0) as f64;
+            let color_degree: f64 = (rgb.get_hue() + 103.4) as f64;
             let color_degree_as_radians: f64 = color_degree.to_radians();
             let saturation: f64 = rgb.get_saturation() as f64;
             let color_delta_x = saturation * f64::cos(color_degree_as_radians);
@@ -73,6 +94,15 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
             index = index + (4 * ANALYZE_SKIP_RATIO);
         }
 
+        // draw circle frame
+        root.draw_circle(
+            VECTOR_SCOPE_CENTER,
+            100,
+            VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
+            false,
+        )
+        .expect("Error on draw vector scope circle");
+
         // draw center line
         root.draw_line(
             (0, VECTOR_SCOPE_CENTER.1),
@@ -80,18 +110,31 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
                 VECTOR_SCOPE_WIDHT.try_into().unwrap(),
                 VECTOR_SCOPE_CENTER.1,
             ),
-            COLOR_LINE.get_or_init(init_line_color),
+            VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
         )
-        .expect("Error on draw line");
+        .expect("Error on draw center line");
         root.draw_line(
             (VECTOR_SCOPE_CENTER.0, 0),
             (
                 VECTOR_SCOPE_CENTER.0,
                 VECTOR_SCOPE_HEIGHT.try_into().unwrap(),
             ),
-            COLOR_LINE.get_or_init(init_line_color),
+            VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
         )
-        .expect("Error on draw line");
+        .expect("Error on draw center line");
+
+        // draw skin tone line
+        root.draw_line(
+            (VECTOR_SCOPE_CENTER.0, VECTOR_SCOPE_CENTER.1),
+            (
+                (VECTOR_SCOPE_CENTER.0 as f64 - SKIN_TONE_LINE.get_or_init(init_skin_tone_line).0)
+                    as i32,
+                (VECTOR_SCOPE_CENTER.1 as f64 - SKIN_TONE_LINE.get_or_init(init_skin_tone_line).1)
+                    as i32,
+            ),
+            VECTOR_SCOPE_AUX_LINE_COLOR.get_or_init(init_vector_scope_aux_line_color),
+        )
+        .expect("Error on draw skin tone line");
 
         root.present()?;
     }
@@ -113,7 +156,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
 pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let image_vec = image.rgba();
     let image_width = image.width();
-    let mut graph = vec![16; (image_width * WAVEFORM_HEIGHT * 3) as usize];
+    let mut graph = vec![BACKGROUND_COLOR; (image_width * WAVEFORM_HEIGHT * 3) as usize];
     {
         let mut root: BitMapBackend<RGBPixel> =
             BitMapBackend::with_buffer_and_format(&mut graph, (image_width, WAVEFORM_HEIGHT))
@@ -159,7 +202,7 @@ pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error
         root.draw_line(
             (0, 128),
             (image_width.try_into().unwrap(), 128),
-            COLOR_LINE.get_or_init(init_line_color),
+            WAVEFORM_AUX_LINE_COLOR.get_or_init(init_waveform_aux_line_color),
         )
         .expect("Error on draw 128 line");
 
@@ -167,7 +210,7 @@ pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error
         root.draw_line(
             ((image_width / 2).try_into().unwrap(), 0),
             ((image_width / 2).try_into().unwrap(), 255),
-            COLOR_LINE.get_or_init(init_line_color),
+            WAVEFORM_AUX_LINE_COLOR.get_or_init(init_waveform_aux_line_color),
         )
         .expect("Error on draw half width line");
 
@@ -191,7 +234,7 @@ pub fn draw_waveform(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error
 pub fn draw_waveform_luminance(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let image_vec = image.rgba();
     let image_width = image.width();
-    let mut graph = vec![16; (image_width * WAVEFORM_HEIGHT * 3) as usize];
+    let mut graph = vec![BACKGROUND_COLOR; (image_width * WAVEFORM_HEIGHT * 3) as usize];
     {
         let mut root: BitMapBackend<RGBPixel> =
             BitMapBackend::with_buffer_and_format(&mut graph, (image_width, WAVEFORM_HEIGHT))
@@ -219,19 +262,23 @@ pub fn draw_waveform_luminance(image: &Image) -> Result<Vec<u8>, Box<dyn std::er
             index += 4;
         }
 
-        // draw 128 line
-        root.draw_line(
-            (0, 128),
-            (image_width.try_into().unwrap(), 128),
-            COLOR_LINE.get_or_init(init_line_color),
-        )
-        .expect("Error on draw 128 line");
+        // draw luminace aux lines
+        let mut luminace: i32 = 64;
+        while luminace < 255 {
+            root.draw_line(
+                (0, luminace),
+                (image_width.try_into().unwrap(), luminace),
+                WAVEFORM_AUX_LINE_COLOR.get_or_init(init_waveform_aux_line_color),
+            )
+            .expect("Error on draw luminace auxiliary line");
+            luminace += 64;
+        }
 
         // draw half widht line
         root.draw_line(
             ((image_width / 2).try_into().unwrap(), 0),
             ((image_width / 2).try_into().unwrap(), 255),
-            COLOR_LINE.get_or_init(init_line_color),
+            WAVEFORM_AUX_LINE_COLOR.get_or_init(init_waveform_aux_line_color),
         )
         .expect("Error on draw half width line");
 
