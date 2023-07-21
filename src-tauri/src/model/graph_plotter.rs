@@ -15,7 +15,6 @@ const VECTOR_SCOPE_CENTER: (i32, i32) = (
     (VECTOR_SCOPE_HEIGHT / 2) as i32,
 );
 const WAVEFORM_HEIGHT: u32 = 255;
-const ANALYZE_SKIP_RATIO: usize = 64;
 
 static VECTOR_SCOPE_BUFFER_SIZE: OnceLock<usize> = OnceLock::new();
 #[cold]
@@ -91,7 +90,7 @@ pub fn draw_vector_scope(image: &Image) -> Result<Vec<u8>, Box<dyn std::error::E
             )
             .expect("Error on plot pixel");
 
-            index = index + (4 * ANALYZE_SKIP_RATIO);
+            index = index + 4;
         }
 
         // draw circle frame
